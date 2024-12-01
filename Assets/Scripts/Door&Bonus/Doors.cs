@@ -8,20 +8,33 @@ using UnityEngine;
 public class Doors : MonoBehaviour
 {
     [Header("Elements")]
-    [SerializeField] SpriteRenderer rightDoorRenderer;
-    [SerializeField] SpriteRenderer leftDoorRenderer;
-    [SerializeField] TMP_Text rightDoorText;
-    [SerializeField] TMP_Text leftDoorText;
+    [SerializeField] private SpriteRenderer rightDoorRenderer;
+    [SerializeField] private SpriteRenderer leftDoorRenderer;
+    [SerializeField] private TMP_Text rightDoorText;
+    [SerializeField] private TMP_Text leftDoorText;
 
     [Header("Settings")]
-    [SerializeField] BonusType rightDoorBonusType;
-    [SerializeField] int rightDoorAmount;
+    [SerializeField] private BonusType rightDoorBonusType;
+    [SerializeField] private int rightDoorAmount;
 
-    [SerializeField] BonusType leftDoorBonusType;
-    [SerializeField] int leftDoorAmount;
+    [SerializeField] private BonusType leftDoorBonusType;
+    [SerializeField] private int leftDoorAmount;
 
-    [SerializeField] Color bonusColor;
-    [SerializeField] Color penaltyColor;
+    [SerializeField] private Color bonusColor;
+    [SerializeField] private Color penaltyColor;
+
+    private void Awake()
+    {
+        // Register this door with the singleton DoorBonusHandler
+        if (DoorBonusHandler.Instance != null)
+        {
+            DoorBonusHandler.Instance.RegisterDoor(this);
+        }
+        else
+        {
+            Debug.LogWarning("DoorBonusHandler instance not found when registering door!");
+        }
+    }
 
     private void Start()
     {
@@ -70,6 +83,18 @@ public class Doors : MonoBehaviour
                 leftDoorText.text = "/" + leftDoorAmount;
                 break;
         }
+    }
+
+    internal void SetBonusAmount(int rightAmount, int leftAmount)
+    {
+        rightDoorAmount = rightAmount;
+        leftDoorAmount = leftAmount;
+    }
+
+    internal void SetBonusType(BonusType rightBonusType, BonusType leftBonusType)
+    {
+        rightDoorBonusType = rightBonusType;
+        leftDoorBonusType = leftBonusType;
     }
 
     internal int GetBonusAmount(float x)

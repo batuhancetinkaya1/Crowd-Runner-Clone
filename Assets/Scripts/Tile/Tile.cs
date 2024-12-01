@@ -1,21 +1,28 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Tile : MonoBehaviour
 {
-    [Header("Settings")]
-    [SerializeField] private Vector3 size;
+    [SerializeField] private Chunk chunk;
+    public TileManager tileManager; // TileManager referansý
 
-    private void OnDrawGizmos()
+    private void OnTriggerExit(Collider other)
     {
-        Gizmos.color = Color.blue;
-
-        Gizmos.DrawWireCube(transform.position, size);
+        if (other.CompareTag("Destroyer"))
+        {
+            Destroy(gameObject);
+        }
     }
 
-    public float GetLength()
+    private void OnDestroy()
     {
-        return size.z;
+        if (tileManager != null)
+        {
+            tileManager.RemoveTile(this); // TileManager'a bildir
+        }
+    }
+
+    public float GetChunkLength()
+    {
+        return chunk.GetLength();
     }
 }

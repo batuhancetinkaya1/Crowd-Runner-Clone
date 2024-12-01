@@ -5,10 +5,12 @@ public class GameManager : MonoBehaviour
     [Header("Settings")]
     [SerializeField] private bool isGameOn = true;
     [SerializeField] private bool isFighting = false;
-    [SerializeField] private bool isGameOver = false; 
+    [SerializeField] private bool isGameOver = false;
+
     public bool IsGameOn => isGameOn;
-    public bool IsFighting => IsFighting;
-    public bool IsGameOver => IsGameOver;
+    public bool IsFighting => isFighting;
+    public bool IsGameOver => isGameOver;
+
     public static GameManager Instance { get; private set; }
 
     public enum GameState
@@ -19,12 +21,11 @@ public class GameManager : MonoBehaviour
         Death,
         Controls,
         Credits,
-
         Fight,
         GameOver
     }
-    public GameState CurrentState { get; private set; } = GameState.Game;
 
+    public GameState CurrentState { get; private set; } = GameState.Game;
 
     void Awake()
     {
@@ -41,5 +42,17 @@ public class GameManager : MonoBehaviour
     public void SetGameState(GameState newState)
     {
         CurrentState = newState;
+    }
+
+    public void StartFighting()
+    {
+        isFighting = true;
+        CurrentState = GameState.Fight;
+    }
+
+    public void StopFighting()
+    {
+        isFighting = false;
+        CurrentState = GameState.Game;
     }
 }
