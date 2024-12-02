@@ -7,7 +7,7 @@ public class PlayerCrowdSystemControl : MonoBehaviour
     [Header("Fermat Spiral Configuration")]
     [SerializeField] private float goldenAngle = 137.5f; // Golden angle in degrees
     [SerializeField] private float spreadFactor = 0.5f; // Controls the spread of the spiral
-    [SerializeField] private Transform runnerParent;
+    [SerializeField] internal Transform runnerParent;
     [SerializeField] private GameObject runnerPrefab;
 
     [Header("Fight Formation Configuration")]

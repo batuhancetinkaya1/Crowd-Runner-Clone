@@ -9,6 +9,15 @@ public class TileManager : MonoBehaviour
     [SerializeField] Vector3 spawnPosition = Vector3.zero;
     [SerializeField] List<Tile> tiles;
 
+    // Flag to prevent spawning during scene shutdown
+    private bool isShuttingDown = false;
+
+    private void OnApplicationQuit()
+    {
+        // Set flag to prevent further tile spawning
+        isShuttingDown = true;
+    }
+
     void Start()
     {
         InitialSpawn();
@@ -18,44 +27,39 @@ public class TileManager : MonoBehaviour
     {
         for (int i = 0; i < maxTileCount; i++)
         {
-            Tile tileToCreate = tilePrefab[Random.Range(0, tilePrefab.Length)];
-
-            if (i > 0)
-            {
-                spawnPosition.z += tileToCreate.GetChunkLength() / 2;
-            }
-
-            Tile newTile = Instantiate(tileToCreate, spawnPosition, Quaternion.identity, transform);
-            newTile.tileManager = this; // Referansý ata
-            tiles.Add(newTile);
-
-            spawnPosition.z += tileToCreate.GetChunkLength() / 2;
+            SpawnTile();
         }
     }
 
     public void TileSpawner()
     {
-        if (tiles.Count < maxTileCount)
+        if (tiles.Count < maxTileCount && !isShuttingDown)
         {
-            Tile tileToCreate = tilePrefab[Random.Range(0, tilePrefab.Length)];
+            SpawnTile();
+        }
+    }
 
-            spawnPosition.z += tileToCreate.GetChunkLength() / 2;
+    private void SpawnTile()
+    {
+        Tile tileToCreate = tilePrefab[Random.Range(0, tilePrefab.Length)];
 
-            Tile newTile = Instantiate(tileToCreate, spawnPosition, Quaternion.identity, transform);
-            newTile.tileManager = this; // Referansý ata
-            tiles.Add(newTile);
-
+        if (tiles.Count > 0)
+        {
             spawnPosition.z += tileToCreate.GetChunkLength() / 2;
         }
+
+        Tile newTile = Instantiate(tileToCreate, spawnPosition, Quaternion.identity, transform);
+        newTile.tileManager = this;
+        tiles.Add(newTile);
+
+        spawnPosition.z += tileToCreate.GetChunkLength() / 2;
     }
 
     public void RemoveTile(Tile tile)
     {
-        if (tiles.Count > 0 && tiles[0] == tile) // Sadece listenin ilk elemanýný kontrol et
+        if (!isShuttingDown && tiles.Count > 0 && tiles[0] == tile)
         {
-            tiles.RemoveAt(0); //Sadece listedeki ilk tile yok edilecek oyun çizgisel aktýðýndan bu sorunumuzu çözüyor.
-
-            // Yeni bir Tile spawn et
+            tiles.RemoveAt(0);
             TileSpawner();
         }
     }

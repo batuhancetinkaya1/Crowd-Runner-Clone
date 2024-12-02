@@ -15,9 +15,9 @@ public class Tile : MonoBehaviour
 
     private void OnDestroy()
     {
-        if (tileManager != null)
+        if (tileManager != null && !ReferenceEquals(tileManager, null))
         {
-            tileManager.RemoveTile(this); // TileManager'a bildir
+            tileManager.RemoveTile(this);
         }
     }
 
