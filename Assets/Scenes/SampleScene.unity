@@ -979,7 +979,7 @@ GameObject:
   - component: {fileID: 1451223124}
   - component: {fileID: 1451223127}
   - component: {fileID: 1451223123}
-  - component: {fileID: 1451223126}
+  - component: {fileID: 1451223128}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -1035,7 +1035,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1451223126
+--- !u!114 &1451223127
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1451223122}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7335398d06b50414887fdbefadc5f318, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1451223128
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1049,18 +1061,31 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerCrowdSystemControl: {fileID: 597802490}
   doorsList: []
---- !u!114 &1451223127
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1451223122}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7335398d06b50414887fdbefadc5f318, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  criticalStateWeights:
+  - 0.4
+  - 0.5
+  - 0.08
+  - 0.02
+  smallStateWeights:
+  - 0.35
+  - 0.3
+  - 0.15
+  - 0.1
+  idealStateWeights:
+  - 0.3
+  - 0.2
+  - 0.3
+  - 0.2
+  crowdedStateWeights:
+  - 0.15
+  - 0.1
+  - 0.35
+  - 0.3
+  overCrowdedStateWeights:
+  - 0.08
+  - 0.02
+  - 0.4
+  - 0.5
 --- !u!1 &1592114052
 GameObject:
   m_ObjectHideFlags: 0
