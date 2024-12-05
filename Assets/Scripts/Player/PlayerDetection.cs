@@ -12,16 +12,22 @@ public class PlayerDetection : MonoBehaviour
         {
             for(int i = 0; i < detectCollider.Length; i++)
             {
-                if(detectCollider[i].TryGetComponent(out Doors doors))
+                if(detectCollider[i].TryGetComponent(out Doors door))
                 {
-                    int bonusAmount = doors.GetBonusAmount(transform.position.x);
-                    BonusType bonusType = doors.GetBonusType(transform.position.x);
+                    int bonusAmount = door.GetBonusAmount(transform.position.x);
+                    BonusType bonusType = door.GetBonusType(transform.position.x);
 
                     playerCrowdSystemControl.ApplyBonus(bonusType, bonusAmount);
 
-                    doors.GetComponent<Collider>().enabled = false;
+                    door.GetComponent<Collider>().enabled = false;
+                    DoorBonusHandler.Instance.RemoveFromList(door);
                 }
             }
         }
+    }
+
+    public void DetecEnemy() 
+    {
+
     }
 }

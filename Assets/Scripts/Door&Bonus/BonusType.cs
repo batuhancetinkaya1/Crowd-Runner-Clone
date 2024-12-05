@@ -1,7 +1,7 @@
 public enum BonusType
 {
-    Addition,
-    Difference,
+    Addition, 
     Product,
+    Difference,
     Division
 }

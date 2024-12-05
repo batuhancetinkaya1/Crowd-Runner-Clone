@@ -36,6 +36,11 @@ public class Doors : MonoBehaviour
         }
     }
 
+    private void OnDestroy()
+    {
+        DoorBonusHandler.Instance.RemoveFromList(this);
+    }
+
     private void Start()
     {
         ConfigureDoors();

@@ -145,4 +145,9 @@ public class PlayerCrowdSystemControl : MonoBehaviour
             Destroy(runnerToDestroy.gameObject);
         }
     }
+
+    internal int GetCrowdCount()
+    {
+        return runnerParent.childCount;
+    }
 }
