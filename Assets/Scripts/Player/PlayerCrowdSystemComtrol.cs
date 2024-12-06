@@ -12,6 +12,7 @@ public class PlayerCrowdSystemControl : MonoBehaviour
     [SerializeField] private GameObject runnerPrefab;
 
     [Header("Fight Formation Configuration")]
+    [SerializeField] private PlayerAnimControl playerAnimControl;
     [SerializeField] private int runnersPerRow = 10;
     [SerializeField] private float minX = -4.5f; // X eksenindeki minimum pozisyon
     [SerializeField] private float maxX = 4.5f;  // X eksenindeki maksimum pozisyon
@@ -20,7 +21,19 @@ public class PlayerCrowdSystemControl : MonoBehaviour
 
     [Header("Text")]
     [SerializeField] private TMP_Text crowdCounterText;
+    public static PlayerCrowdSystemControl Instance { get; private set; }
 
+    private void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
     public void CrowdDistribution(GameManager.GameState gameState)
     {
         switch (gameState)
@@ -53,7 +66,11 @@ public class PlayerCrowdSystemControl : MonoBehaviour
 
         for (int i = 0; i < runnersCount; i++)
         {
-            Transform runner = runnerParent.GetChild(i);
+            Transform runner = runnerParent.GetChild(i); // i. Runner nesnesini al
+            Transform player = runner.Find("Player"); // Runner altýnda "Player" adlý Transform'u bul
+            Animator playerAnimator = player.GetComponent<Animator>(); // Player'ýn Animator bileþenine eriþ
+            playerAnimControl.FightPrep(playerAnimator); // Animator'ý iþleme gönder
+
 
             int row = i / runnersPerRow; // Kaçýncý sýrada olduðumuzu hesapla
             int col = i % runnersPerRow; // Sýradaki konumu hesapla

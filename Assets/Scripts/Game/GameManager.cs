@@ -56,5 +56,9 @@ public class GameManager : MonoBehaviour
         {
             SetGameState(GameState.Game);
         }
+        else if (Input.GetKeyDown(KeyCode.A))
+        {
+            SetGameState(GameState.Fight);
+        }
     }
 }

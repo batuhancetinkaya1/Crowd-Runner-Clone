@@ -34,7 +34,9 @@ public class InputManager : MonoBehaviour
         {
             // Distribute crowd for fight formation
             playerCrowdSystemControl.CrowdDistribution(GameManager.GameState.FightPrep);
-            enemyFightHandler.SetStatu(GameManager.GameState.FightPrep);
+            playerFightHandler.FightPrep();
+            //enemyFightHandler.FightPrep();
+            StartCoroutine(FightTransaction());
         }
         else if(GameManager.Instance.CurrentState == GameManager.GameState.Fight)
         {
@@ -42,6 +44,12 @@ public class InputManager : MonoBehaviour
             playerFightHandler.FightPlayer();
         }
     }
+
+    private IEnumerator FightTransaction()
+    {
+        GameManager.Instance.SetGameState(GameManager.GameState.Fight);
+        yield return new WaitForSeconds(3f);
+    } 
 
     private void PlayerInputHandler()
     {

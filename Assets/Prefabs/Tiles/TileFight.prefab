@@ -80,6 +80,8 @@ GameObject:
   m_Component:
   - component: {fileID: 8638860431228293281}
   - component: {fileID: 1942017634178192709}
+  - component: {fileID: 3272032648047681087}
+  - component: {fileID: 4742421283159491648}
   m_Layer: 0
   m_Name: Enemy
   m_TagString: Enemy
@@ -125,6 +127,38 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 10, y: 1, z: 15}
   m_Center: {x: 0, y: 0, z: -10}
+--- !u!114 &3272032648047681087
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3251046437744856313}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 92c12cdb3c2e7c54dab8c49949a039df, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  enemyParent: {fileID: 2130298224593012137}
+  enemyPrefab: {fileID: 3229538647388200815, guid: 17ba87e07c3703f41b00678b7711a30a,
+    type: 3}
+  enemyAnimControl: {fileID: 4742421283159491648}
+  crowdCounterText: {fileID: 666366829341661305}
+--- !u!114 &4742421283159491648
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3251046437744856313}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62c8ad20d18d7bf428d63593287a38dd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  isRun: 0
+  isFight: 0
+  isIdle: 0
 --- !u!1 &3819159812969659660
 GameObject:
   m_ObjectHideFlags: 0
@@ -458,11 +492,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: ChunkFight
-      objectReference: {fileID: 0}
-    - target: {fileID: 6527936797725121201, guid: 80ead0fde179db74aac62042be23b76e,
-        type: 3}
-      propertyPath: m_LocalScale.z
-      value: 70
       objectReference: {fileID: 0}
     - target: {fileID: 6527936797725121201, guid: 80ead0fde179db74aac62042be23b76e,
         type: 3}

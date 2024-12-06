@@ -27,8 +27,8 @@ public class DoorBonusHandler : MonoBehaviour
     [SerializeField] private float[] overCrowdedStateWeights = { 0.08f, 0.02f, 0.4f, 0.5f };
 
     [Header("Bonus Calculation Parameters")]
-    private int potentialMaxCrowd = 1;
-    private int potentialMinCrowd = 1;
+    internal int potentialMaxCrowd = 1;
+    internal int potentialMinCrowd = 1;
 
     private int currentCrowd = 1;
 
@@ -135,7 +135,7 @@ public class DoorBonusHandler : MonoBehaviour
         return CrowdState.OverCrowded;
     }
 
-    private void ResetPotantialCrowd()
+    internal void ResetPotantialCrowd()
     {
         currentCrowd = playerCrowdSystemControl.GetCrowdCount();
 
