@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
@@ -8,7 +9,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private bool isGameOver = false;
 
     public bool IsGameOn => isGameOn;
-    public bool IsFighting => isFighting;
+    public bool IsFightOn => isFighting;
     public bool IsGameOver => isGameOver;
 
     public static GameManager Instance { get; private set; }
@@ -22,6 +23,7 @@ public class GameManager : MonoBehaviour
         Controls,
         Credits,
         Fight,
+        FightPrep,
         GameOver
     }
 
@@ -44,15 +46,15 @@ public class GameManager : MonoBehaviour
         CurrentState = newState;
     }
 
-    public void StartFighting()
+    private void Update()
     {
-        isFighting = true;
-        CurrentState = GameState.Fight;
-    }
-
-    public void StopFighting()
-    {
-        isFighting = false;
-        CurrentState = GameState.Game;
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            SetGameState(GameState.FightPrep);
+        }
+        else if (Input.GetKeyDown(KeyCode.B))
+        {
+            SetGameState(GameState.Game);
+        }
     }
 }

@@ -4,10 +4,14 @@ using UnityEngine;
 public class TileManager : MonoBehaviour
 {
     [Header("Elements")]
-    [SerializeField] Tile[] tilePrefab;
-    [SerializeField] int maxTileCount = 5;
-    [SerializeField] Vector3 spawnPosition = Vector3.zero;
-    [SerializeField] List<Tile> tiles;
+    [SerializeField] private Tile[] tilePrefab;
+    [SerializeField] private int maxTileCount = 5;
+    [SerializeField] private Vector3 spawnPosition = Vector3.zero;
+    [SerializeField] private List<Tile> tiles;
+
+    [Header("Elements")]
+    [SerializeField] private Tile fightTile;
+    [SerializeField] private int fightCountDown = 5;
 
     // Flag to prevent spawning during scene shutdown
     private bool isShuttingDown = false;
@@ -27,19 +31,23 @@ public class TileManager : MonoBehaviour
     {
         for (int i = 0; i < maxTileCount; i++)
         {
-            SpawnTile();
+            SpawnRegularTile();
         }
     }
 
     public void TileSpawner()
     {
-        if (tiles.Count < maxTileCount && !isShuttingDown)
+        if (tiles.Count < maxTileCount && !isShuttingDown && fightCountDown > 0)
         {
-            SpawnTile();
+            SpawnRegularTile();
+        }
+        else if(!isShuttingDown && fightCountDown > 0)
+        {
+            SpawnFightTile(); //bunu kapatmak gerekebilir
         }
     }
 
-    private void SpawnTile()
+    private void SpawnRegularTile()
     {
         Tile tileToCreate = tilePrefab[Random.Range(0, tilePrefab.Length)];
 
@@ -50,9 +58,24 @@ public class TileManager : MonoBehaviour
 
         Tile newTile = Instantiate(tileToCreate, spawnPosition, Quaternion.identity, transform);
         newTile.tileManager = this;
+
+        spawnPosition.z += tileToCreate.GetChunkLength() / 2;
+        fightCountDown--;
+    }
+
+    private void SpawnFightTile()
+    {
+        Tile tileToCreate = fightTile;
+
+        spawnPosition.z += tileToCreate.GetChunkLength() / 2;
+
+
+        Tile newTile = Instantiate(tileToCreate, spawnPosition, Quaternion.identity, transform);
+        newTile.tileManager = this;
         tiles.Add(newTile);
 
         spawnPosition.z += tileToCreate.GetChunkLength() / 2;
+        fightCountDown = 5;
     }
 
     public void RemoveTile(Tile tile)

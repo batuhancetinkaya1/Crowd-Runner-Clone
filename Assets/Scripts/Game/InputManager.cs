@@ -18,7 +18,7 @@ public class InputManager : MonoBehaviour
 
     void Update()
     {
-        if (GameManager.Instance.IsGameOn && GameManager.Instance.CurrentState == GameManager.GameState.Game)
+        if (GameManager.Instance.CurrentState == GameManager.GameState.Game)
         {
             // Crowd Distribution
             playerCrowdSystemControl.CrowdDistribution(GameManager.GameState.Game);
@@ -28,13 +28,16 @@ public class InputManager : MonoBehaviour
             // Player Move
             playerInputControl.NormalRun();
             PlayerInputHandler();
-            playerDetection.DetectDoor();
+            playerDetection.DetectObjects();
         }
-        else if (GameManager.Instance.IsFighting && GameManager.Instance.CurrentState == GameManager.GameState.Fight)
+        else if (GameManager.Instance.CurrentState == GameManager.GameState.FightPrep)
         {
             // Distribute crowd for fight formation
-            playerCrowdSystemControl.CrowdDistribution(GameManager.GameState.Fight);
-
+            playerCrowdSystemControl.CrowdDistribution(GameManager.GameState.FightPrep);
+            enemyFightHandler.SetStatu(GameManager.GameState.FightPrep);
+        }
+        else if(GameManager.Instance.CurrentState == GameManager.GameState.Fight)
+        {
             enemyFightHandler.FightEnemy();
             playerFightHandler.FightPlayer();
         }

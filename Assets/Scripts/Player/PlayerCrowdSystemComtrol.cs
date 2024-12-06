@@ -1,6 +1,7 @@
 using System;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class PlayerCrowdSystemControl : MonoBehaviour
 {
@@ -11,9 +12,11 @@ public class PlayerCrowdSystemControl : MonoBehaviour
     [SerializeField] private GameObject runnerPrefab;
 
     [Header("Fight Formation Configuration")]
-    [SerializeField] private float fightFormationWidth = 9f; // Total width for 10 runners
-    [SerializeField] private float fightFormationSpacing = 1f; // Spacing between runners in a row
-    [SerializeField] private float fightFormationRowHeight = 1f; // Height between rows
+    [SerializeField] private int runnersPerRow = 10;
+    [SerializeField] private float minX = -4.5f; // X eksenindeki minimum pozisyon
+    [SerializeField] private float maxX = 4.5f;  // X eksenindeki maksimum pozisyon
+    [SerializeField] private float zStart = 0f; // En uzak sýranýn Z konumu
+    [SerializeField] private float zStep = -1f;
 
     [Header("Text")]
     [SerializeField] private TMP_Text crowdCounterText;
@@ -25,7 +28,7 @@ public class PlayerCrowdSystemControl : MonoBehaviour
             case GameManager.GameState.Game:
                 DistributeFermatSpiral();
                 break;
-            case GameManager.GameState.Fight:
+            case GameManager.GameState.FightPrep:
                 DistributeFightFormation();
                 break;
         }
@@ -41,29 +44,24 @@ public class PlayerCrowdSystemControl : MonoBehaviour
 
     private void DistributeFightFormation()
     {
-        int runnersCount = runnerParent.childCount;
-        int runnersPerRow = 10;
 
-        // Calculate the maximum number of complete rows
-        int totalRows = Mathf.CeilToInt((float)runnersCount / runnersPerRow);
+        this.transform.position = new Vector3(0, this.transform.position.y, this.transform.position.z);
+
+        int runnersCount = runnerParent.childCount; // Runner sayýsý
+
+        float xStep = (maxX - minX) / (runnersPerRow - 1); // X eksenindeki mesafe
 
         for (int i = 0; i < runnersCount; i++)
         {
-            // Calculate row and position within row
-            int row = i / runnersPerRow;
-            int positionInRow = i % runnersPerRow;
-
-            // Calculate x position using formation width and spacing
-            float effectiveWidth = Mathf.Min(fightFormationWidth, (runnersPerRow - 1) * fightFormationSpacing);
-            float xOffset = Mathf.Lerp(-effectiveWidth / 2f, effectiveWidth / 2f,
-                positionInRow / (float)(Mathf.Min(runnersPerRow, runnersCount - row * runnersPerRow) - 1));
-
-            // Calculate z position (rows pushed back)
-            float zOffset = -row * fightFormationRowHeight;
-
-            // Position the runner
             Transform runner = runnerParent.GetChild(i);
-            runner.localPosition = new Vector3(xOffset, 0, zOffset);
+
+            int row = i / runnersPerRow; // Kaçýncý sýrada olduðumuzu hesapla
+            int col = i % runnersPerRow; // Sýradaki konumu hesapla
+
+            float x = minX + col * xStep; // X konumu
+            float z = zStart + row * zStep; // Z konumu (bize doðru)
+
+            runner.localPosition = new Vector3(x, 0, z); // Runner'ý yeni pozisyona taþý
         }
     }
 

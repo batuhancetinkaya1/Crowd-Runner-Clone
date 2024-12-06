@@ -90,9 +90,6 @@ public class DoorBonusHandler : MonoBehaviour
         door.SetBonusAmount(leftBonusAmount, rightBonusAmount);
         doorsList.Add(door);
 
-        Debug.Log("Potential Maximum Crowd: " + potentialMaxCrowd);
-        Debug.Log("Potential Minimum Crowd: " + potentialMinCrowd);
-
         i++;
         if (i >= 5) isStart = false; ResetPotantialCrowd();
     }
@@ -125,8 +122,6 @@ public class DoorBonusHandler : MonoBehaviour
         door.SetBonusAmount(leftBonusAmount, rightBonusAmount);
         doorsList.Add(door);
 
-        Debug.Log("Potential Maximum Crowd: " + potentialMaxCrowd);
-        Debug.Log("Potential Minimum Crowd: " + potentialMinCrowd);
     }
 
     private CrowdState DetermineCrowdState(int potentialMinCrowd, int potentialMaxCrowd)
@@ -214,7 +209,7 @@ public class DoorBonusHandler : MonoBehaviour
 
                     if(potentialMinCrowd - amount < MinCrowd)
                     {
-                        amount = 0;
+                        amount = minBonusAmount;
                     }
 
                     return amount;
