@@ -10,6 +10,8 @@ public class TileManager : MonoBehaviour
     [SerializeField] private Vector3 spawnPosition = Vector3.zero;
     [SerializeField] private List<Tile> activeTiles = new List<Tile>();
 
+    [SerializeField] private Tile assignedFightTile = null;
+
     private bool isShuttingDown = false;
     private int regularTileCount = 0;
 
@@ -71,6 +73,8 @@ public class TileManager : MonoBehaviour
 
         UpdateSpawnPosition(tileToCreate);
         regularTileCount = 0; // Reset regular tile count after a fight tile
+
+        assignedFightTile = tileToCreate;
     }
 
     private void UpdateSpawnPosition(Tile tile)
@@ -93,5 +97,23 @@ public class TileManager : MonoBehaviour
         {
             TileSpawner(true);
         }
+    }
+
+    public List<Tile> GetActiveTiles()
+    {
+        return activeTiles;
+    }
+
+    public void ClearTiles()
+    {
+        foreach (Tile tile in activeTiles)
+        {
+            tile.transform.SetParent(null);
+            Destroy(tile);
+        }
+        assignedFightTile.transform.SetParent(null);
+        Destroy(assignedFightTile);
+
+        activeTiles.Clear();
     }
 }

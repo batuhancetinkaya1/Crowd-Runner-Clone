@@ -44,15 +44,14 @@ public class InputManager : MonoBehaviour
                 HandleFightState();
                 break;
             case GameManager.GameState.GameOver:
-                StartCoroutine(ResetGame());
+                HandleGameOverState();
                 break;
         }
     }
 
-    private IEnumerator ResetGame()
+    private void HandleGameOverState()
     {
-        SceneManager.LoadScene(0);
-        yield return new WaitForSeconds(2f);
+        GameResetManager.Instance.ResetGame();
     }
 
     private void HandleGameState()

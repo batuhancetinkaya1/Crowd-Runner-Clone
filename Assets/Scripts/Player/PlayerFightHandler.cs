@@ -11,9 +11,9 @@ public class PlayerFightHandler : MonoBehaviour
 
     [Header("Fight Speed Settings")]
     [SerializeField] private float gameSpeed = 5f;
-    [SerializeField] private float fightPrepSpeed = 1.5f;
+    [SerializeField] private float fightPrepSpeed = 5f;
     [SerializeField] private float fightSpeed = 0f;
-    [SerializeField] private float marchspeed = 0.1f;
+    //[SerializeField] private float marchspeed = 0.1f;
 
     [Header("Fight Positioning")]
     [SerializeField] private float initialFightDistance = 1f;
@@ -21,6 +21,11 @@ public class PlayerFightHandler : MonoBehaviour
     [SerializeField] private float fightDistanceReductionRate = 0.5f;
     [SerializeField] private float smoothSpeed = 5f;
     [SerializeField] private Vector3 smoothedPosition;
+
+
+    [SerializeField] private AudioClip bubblePop;
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private float loopDelay = 1.0f;
 
 
     private bool isFighting = false;
@@ -66,11 +71,21 @@ public class PlayerFightHandler : MonoBehaviour
         StartCoroutine(DestroyRunnersWithDelay(runnersToDestroy));
     }
 
+    private void PlaySound()
+    {
+        audioSource.Play();
+    }
+
+
     // Destroy runners on both sides with delays
     private IEnumerator DestroyRunnersWithDelay(int runnersToDestroy)
     {
-        playerMoveControl.SetSpeed(marchspeed);
-        enemyFightHandler.registeredEnemy.SetSpeed(marchspeed);
+        playerMoveControl.SetSpeed(gameSpeed);
+        enemyFightHandler.registeredEnemy.SetSpeed(gameSpeed);
+
+        audioSource.clip = bubblePop;
+        InvokeRepeating("PlaySound", 0f, bubblePop.length + loopDelay);
+
         for (int i = 0; i < runnersToDestroy; i++)
         {
             yield return new WaitForSeconds(0.01f);
@@ -104,6 +119,7 @@ public class PlayerFightHandler : MonoBehaviour
             }
         }
 
+        CancelInvoke();
         CheckFightCompletion();
     }
 

@@ -13,18 +13,18 @@ public class DoorBonusHandler : MonoBehaviour
 
     [Header("Crowd Settings")]
     private const int IdealMinCrowd = 120;
-    private const int IdealMaxCrowd = 180;
+    private const int IdealMaxCrowd = 150;
     private const int MaxCrowd = 300;
-    private const int MinCrowd = 10;
+    private const int MinCrowd = 1;
 
     [Header("Bonus Configuration")]
     // Addition, Product, Difference, Division
     [SerializeField] private float[] initialStateWeights = { 0.5f, 0.5f, 0.0f, 0.0f };
-    [SerializeField] private float[] criticalStateWeights = { 0.4f, 0.5f, 0.08f, 0.02f };
+    [SerializeField] private float[] criticalStateWeights = { 0.5f, 0.3f, 0.2f, 0.0f };
     [SerializeField] private float[] smallStateWeights = { 0.35f, 0.3f, 0.15f, 0.10f };
     [SerializeField] private float[] idealStateWeights = { 0.30f, 0.20f, 0.30f, 0.20f };
-    [SerializeField] private float[] crowdedStateWeights = { 0.15f, 0.1f, 0.35f, 0.3f };
-    [SerializeField] private float[] overCrowdedStateWeights = { 0.08f, 0.02f, 0.4f, 0.5f };
+    [SerializeField] private float[] crowdedStateWeights = { 0.15f, 0.0f, 0.55f, 0.3f };
+    [SerializeField] private float[] overCrowdedStateWeights = { 0.1f, 0.0f, 0.4f, 0.5f };
 
     [Header("Bonus Calculation Parameters")]
     internal int potentialMaxCrowd = 1;
@@ -32,13 +32,10 @@ public class DoorBonusHandler : MonoBehaviour
 
     private int currentCrowd = 1;
 
-
-
-
     [Header("DENEME TEST")]
     [SerializeField] int i = 0;
     [SerializeField] bool isStart = true;
-    int initialMin = 70;
+    int initialMin = 50;
     int initialMax = 150;
 
     int maxbonusamount = 40;
@@ -61,6 +58,7 @@ public class DoorBonusHandler : MonoBehaviour
     {
         Doors doorToRemove = doorsList[0];
         Destroy(doorToRemove);
+
     }
 
     public void RegisterDoor(Doors door)
@@ -131,7 +129,7 @@ public class DoorBonusHandler : MonoBehaviour
 
     private CrowdState DetermineCrowdState(int potentialMinCrowd, int potentialMaxCrowd)
     {
-        int crowd = (int)(potentialMinCrowd * 0.4f + potentialMaxCrowd * 0.6f);
+        int crowd = (int)(potentialMinCrowd * 0.25f + potentialMaxCrowd * 0.75f);
 
         if (crowd <= MinCrowd + 50) return CrowdState.Critical;
         if (crowd < IdealMinCrowd) return CrowdState.Small;
@@ -177,117 +175,146 @@ public class DoorBonusHandler : MonoBehaviour
     private int CalculateBonusAmount(BonusType type)
     {
         int amount = 1;
-        if (!isStart)
+        if (!isStart) //MaxCrowd >= POTENTIAL (OPERATOR) Amount >= MinCrowd
         {
             switch (type)
             {
                 case BonusType.Addition:
-
                     amount = Random.Range(
-                        Mathf.Max(minBonusAmount, MinCrowd - potentialMinCrowd),
+                        minBonusAmount,
                         Mathf.Min(maxbonusamount, MaxCrowd - potentialMaxCrowd));
-
-                    if(potentialMaxCrowd + amount > MaxCrowd)
+                    if (potentialMaxCrowd + amount > MaxCrowd)
                     {
-                        amount = 0;
+                        if(potentialMaxCrowd + minBonusAmount > MaxCrowd)
+                        {
+                            amount = 0;
+                        }
+                        else
+                        {
+                            amount = minBonusAmount;
+                        }
                     }
                     return amount;
-
                 case BonusType.Product:
-
                     amount = Random.Range(
-                        Mathf.Max(minBonusAmount, MinCrowd / potentialMinCrowd),
+                        minBonusAmount,
                         Mathf.Min(maxbonusamount, MaxCrowd / potentialMaxCrowd));
-
-                    if(amount * potentialMaxCrowd > MaxCrowd)
+                    if (potentialMaxCrowd * amount > MaxCrowd)
                     {
-                        amount = 1;
+                        if (potentialMaxCrowd * minBonusAmount > MaxCrowd)
+                        {
+                            amount = 1;
+                        }
+                        else
+                        {
+                            amount = minBonusAmount;
+                        }
                     }
-
                     return amount;
-
                 case BonusType.Difference:
-
                     amount = Random.Range(
-                        Mathf.Max(minBonusAmount, MinCrowd - potentialMinCrowd),
+                        minBonusAmount,
                         Mathf.Min(maxbonusamount, MaxCrowd - potentialMaxCrowd));
-
-                    if(potentialMinCrowd - amount < MinCrowd)
+                    if (potentialMinCrowd - amount < MinCrowd)
                     {
-                        amount = minBonusAmount;
+                        if (potentialMaxCrowd - minBonusAmount < MinCrowd)
+                        {
+                            amount = 0;
+                        }
+                        else
+                        {
+                            amount = minBonusAmount;
+                        }
                     }
-
                     return amount;
-
                 case BonusType.Division:
-
                     amount = Random.Range(
-                        Mathf.Max(minBonusAmount, MinCrowd / potentialMinCrowd),
-                        Mathf.Min(maxbonusamount, MaxCrowd / potentialMaxCrowd));
-
-                    if(potentialMinCrowd / amount < MinCrowd)
+                        minBonusAmount,
+                        Mathf.Min(maxbonusamount, potentialMaxCrowd / MinCrowd));
+                    if (potentialMinCrowd / amount < MinCrowd)
                     {
-                        amount = 1;
+                        if (potentialMaxCrowd / minBonusAmount < MinCrowd)
+                        {
+                            amount = 1;
+                        }
+                        else
+                        {
+                            amount = minBonusAmount;
+                        }
                     }
-
                     return amount;
                 default:
                     return 0;
             }
         }
-        else /*if(isStart)*/
+        else //initialMax >= POTENTIAL (OPERATOR) Amount >= initialMin
         {
             switch (type)
             {
                 case BonusType.Addition:
-
                     amount = Random.Range(
-                        Mathf.Max(minBonusAmount, initialMin - potentialMinCrowd),
+                        minBonusAmount,
                         Mathf.Min(maxbonusamount, initialMax - potentialMaxCrowd));
-
                     if (potentialMaxCrowd + amount > initialMax)
                     {
-                        amount = 0;
+                        if (potentialMaxCrowd + minBonusAmount > initialMax)
+                        {
+                            amount = 0;
+                        }
+                        else
+                        {
+                            amount = minBonusAmount;
+                        }
                     }
                     return amount;
-
                 case BonusType.Product:
-
                     amount = Random.Range(
-                        Mathf.Max(minBonusAmount, initialMin / potentialMinCrowd),
+                        minBonusAmount,
                         Mathf.Min(maxbonusamount, initialMax / potentialMaxCrowd));
-
-                    if (amount * potentialMaxCrowd > initialMax)
+                    if (potentialMaxCrowd * amount > initialMax)
                     {
-                        amount = 1;
+                        if (potentialMaxCrowd * minBonusAmount > initialMax)
+                        {
+                            amount = 1;
+                        }
+                        else
+                        {
+                            amount = minBonusAmount;
+                        }
                     }
-
                     return amount;
-
                 case BonusType.Difference:
-
                     amount = Random.Range(
-                        Mathf.Max(minBonusAmount, initialMin - potentialMinCrowd),
+                        minBonusAmount,
                         Mathf.Min(maxbonusamount, initialMax - potentialMaxCrowd));
 
                     if (potentialMinCrowd - amount < initialMin)
                     {
-                        amount = 0;
+                        if (potentialMaxCrowd - minBonusAmount < initialMin)
+                        {
+                            amount = 0;
+                        }
+                        else
+                        {
+                            amount = minBonusAmount;
+                        }
                     }
-
                     return amount;
-
                 case BonusType.Division:
-
                     amount = Random.Range(
-                        Mathf.Max(minBonusAmount, initialMin / potentialMinCrowd),
-                        Mathf.Min(maxbonusamount, initialMax / potentialMaxCrowd));
-
+                        minBonusAmount,
+                        Mathf.Min(maxbonusamount, potentialMaxCrowd / initialMin));
                     if (potentialMinCrowd / amount < initialMin)
                     {
-                        amount = 1;
+                        if (potentialMaxCrowd / minBonusAmount < initialMin)
+                        {
+                            amount = 1;
+                        }
+                        else
+                        {
+                            amount = minBonusAmount;
+                        }
                     }
-
                     return amount;
                 default:
                     return 0;

@@ -75,4 +75,14 @@ public class EnemyFightHandler : MonoBehaviour
         registeredEnemyParent = null;
         DoorBonusHandler.Instance.EnemyDoorDeleter();
     }
+    
+    public void ResetEnemyAtEnd()
+    {
+        if (registeredEnemy != null)
+        {
+            Destroy(registeredEnemy.gameObject);
+        }
+        registeredEnemy = null;
+        registeredEnemyParent = null;
+    }
 }

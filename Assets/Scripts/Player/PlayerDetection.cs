@@ -4,6 +4,9 @@ public class PlayerDetection : MonoBehaviour
 {
     [SerializeField] PlayerCrowdSystemControl playerCrowdSystemControl;
 
+
+    [SerializeField] private AudioClip bubblePop;
+    [SerializeField] private AudioSource audioSource;
     public void DetectObjects()
     {
         // Yarýçap içerisindeki Collider'larý bul
@@ -21,6 +24,7 @@ public class PlayerDetection : MonoBehaviour
 
                     playerCrowdSystemControl.ApplyBonus(bonusType, bonusAmount);
 
+                    audioSource.PlayOneShot(bubblePop);
                     door.GetComponent<Collider>().enabled = false;
                     DoorBonusHandler.Instance.RemoveFromList(door);
                 }
