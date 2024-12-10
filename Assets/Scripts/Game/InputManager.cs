@@ -1,6 +1,7 @@
+using System;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class InputManager : MonoBehaviour
 {
@@ -11,45 +12,99 @@ public class InputManager : MonoBehaviour
     [SerializeField] private EnemyFightHandler enemyFightHandler;
     [SerializeField] private PlayerFightHandler playerFightHandler;
 
-    private void Awake()
+    // Flag tanýmlamalarý
+
+
+    public static InputManager Instance { get; private set; }
+
+    void Awake()
     {
-        playerCrowdSystemControl.CrowdCounterTextUpdater();
+        if (Instance == null)
+        {
+            Instance = this;
+            playerCrowdSystemControl.CrowdCounterTextUpdater();
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
     }
 
     void Update()
     {
-        if (GameManager.Instance.CurrentState == GameManager.GameState.Game)
+        switch (GameManager.Instance.CurrentState)
         {
-            // Crowd Distribution
-            playerCrowdSystemControl.CrowdDistribution(GameManager.GameState.Game);
-            playerCrowdSystemControl.ModifyGoldenAngle(); // Angle Changer
-            //tileManager.TileSpawner();
+            case GameManager.GameState.Game:
+                HandleGameState();
+                break;
+            case GameManager.GameState.FightPrep:
+                HandleFightPrepState();
+                break;
+            case GameManager.GameState.Fight:
+                HandleFightState();
+                break;
+            case GameManager.GameState.GameOver:
+                StartCoroutine(ResetGame());
+                break;
+        }
+    }
 
-            // Player Move
-            playerInputControl.NormalRun();
-            PlayerInputHandler();
-            playerDetection.DetectObjects();
-        }
-        else if (GameManager.Instance.CurrentState == GameManager.GameState.FightPrep)
+    private IEnumerator ResetGame()
+    {
+        SceneManager.LoadScene(0);
+        yield return new WaitForSeconds(2f);
+    }
+
+    private void HandleGameState()
+    {
+        // Normal oyun state'i iþlemleri
+        playerCrowdSystemControl.CrowdDistribution(GameManager.GameState.Game);
+        playerCrowdSystemControl.ModifyGoldenAngle();
+
+        playerInputControl.NormalRun();
+        PlayerInputHandler();
+        playerDetection.DetectObjects();
+
+        //Enemy Part
+        if(EnemyFightHandler.Instance.registeredEnemy != null)
         {
-            // Distribute crowd for fight formation
-            playerCrowdSystemControl.CrowdDistribution(GameManager.GameState.FightPrep);
-            playerFightHandler.FightPrep();
-            //enemyFightHandler.FightPrep();
-            StartCoroutine(FightTransaction());
+            EnemyFightHandler.Instance.registeredEnemy.CrowdDistribution(GameManager.GameState.Game);
+            EnemyFightHandler.Instance.registeredEnemy.ModifyGoldenAngle();
+            EnemyFightHandler.Instance.registeredEnemy.DetectObjects();
         }
-        else if(GameManager.Instance.CurrentState == GameManager.GameState.Fight)
-        {
-            enemyFightHandler.FightEnemy();
-            playerFightHandler.FightPlayer();
-        }
+    }
+
+    private void HandleFightPrepState()
+    {
+        // Fight hazýrlýk state'i
+        playerCrowdSystemControl.CrowdDistribution(GameManager.GameState.FightPrep);
+        playerCrowdSystemControl.ModifyGoldenAngle();
+        playerInputControl.NormalRun();
+        playerFightHandler.FightPrep();
+
+        //Enemy Part
+        EnemyFightHandler.Instance.registeredEnemy.CrowdDistribution(GameManager.GameState.FightPrep);
+        EnemyFightHandler.Instance.registeredEnemy.ModifyGoldenAngle();
+        //EnemyFightHandler.Instance.FightPrep();
+
+        // Fight transaction'ýný baþlat
+
+        StartCoroutine(FightTransaction());
+
+    }
+
+    private void HandleFightState()
+    {
+        playerInputControl.NormalRun();
+        EnemyFightHandler.Instance.registeredEnemy.MoveForward();
+        playerFightHandler.CheckFightConditions();
     }
 
     private IEnumerator FightTransaction()
     {
         GameManager.Instance.SetGameState(GameManager.GameState.Fight);
-        yield return new WaitForSeconds(3f);
-    } 
+        yield return new WaitForSeconds(2f);
+    }
 
     private void PlayerInputHandler()
     {
@@ -66,4 +121,5 @@ public class InputManager : MonoBehaviour
             playerInputControl.LineChangeDemandFinisher();
         }
     }
+
 }

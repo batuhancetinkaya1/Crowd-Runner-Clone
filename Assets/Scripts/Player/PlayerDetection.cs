@@ -24,12 +24,6 @@ public class PlayerDetection : MonoBehaviour
                     door.GetComponent<Collider>().enabled = false;
                     DoorBonusHandler.Instance.RemoveFromList(door);
                 }
-                // Eðer obje bir düþmansa
-                else if (detectColliders[i].CompareTag("Enemy"))
-                {
-                    GameManager.Instance.SetGameState(GameManager.GameState.FightPrep);
-                    detectColliders[i].enabled = false;
-                }
             }
         }
     }

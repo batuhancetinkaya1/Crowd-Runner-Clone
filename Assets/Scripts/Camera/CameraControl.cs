@@ -36,7 +36,7 @@ public class CameraControl : MonoBehaviour
         {
             RunningPhase();
         }
-        else if (GameManager.Instance.CurrentState == GameManager.GameState.FightPrep)
+        else if (GameManager.Instance.CurrentState == GameManager.GameState.FightPrep || GameManager.Instance.CurrentState == GameManager.GameState.Fight)
         {
             FightingPhase();
         }

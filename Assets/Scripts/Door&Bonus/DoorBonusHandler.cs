@@ -9,7 +9,7 @@ public class DoorBonusHandler : MonoBehaviour
     public static DoorBonusHandler Instance { get; private set; }
 
     [SerializeField] private PlayerCrowdSystemControl playerCrowdSystemControl;
-    [SerializeField] private List<Doors> doorsList = new List<Doors>();
+    [SerializeField] internal List<Doors> doorsList = new List<Doors>();
 
     [Header("Crowd Settings")]
     private const int IdealMinCrowd = 120;
@@ -57,6 +57,12 @@ public class DoorBonusHandler : MonoBehaviour
         }
     }
 
+    public void EnemyDoorDeleter()
+    {
+        Doors doorToRemove = doorsList[0];
+        Destroy(doorToRemove);
+    }
+
     public void RegisterDoor(Doors door)
     {
         if (!doorsList.Contains(door))
@@ -69,7 +75,6 @@ public class DoorBonusHandler : MonoBehaviour
             {
                 DynamicDoorRegister(door);
             }
-
         }
     }
 
@@ -79,9 +84,9 @@ public class DoorBonusHandler : MonoBehaviour
         BonusType rightBonusType = GetRandomBonusType(CrowdState.Initial);
 
         initialStateWeights[0] -= 0.02f;
-        initialStateWeights[0] -= 0.08f;
-        initialStateWeights[0] += 0.08f;
-        initialStateWeights[0] += 0.02f;
+        initialStateWeights[1] -= 0.1f;
+        initialStateWeights[2] += 0.1f;
+        initialStateWeights[3] += 0.02f;
 
         int leftBonusAmount = CalculateBonusAmount(leftBonusType);
         int rightBonusAmount = CalculateBonusAmount(rightBonusType);

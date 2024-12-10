@@ -1,20 +1,18 @@
-using System.Collections;
-using TMPro;
 using UnityEngine;
+using TMPro;
+using System.Collections;
+using System.Collections.Generic;
 
 public class EnemyFightHandler : MonoBehaviour
 {
     [SerializeField] private GameObject enemyPrefab;
-    [SerializeField] private Enemy registeredEnemy;
+    [SerializeField] public Enemy registeredEnemy;
     [SerializeField] private EnemyAnimControl enemyAnimControl;
-    [SerializeField] private TMP_Text crowdCounterText;
+    [SerializeField] internal Transform registeredEnemyParent;
 
-    private const float FIGHT_DISTANCE = -5f;
-    private const float ROW_ADVANCE_DISTANCE = 1f;
-    private const int RUNNERS_PER_FIGHT = 10;
+    [SerializeField] private Doors fightingDoor;
 
-    private int currentFightRow = 0;
-    private bool isFightInProgress = false;
+    internal int dynamicEnemyCount = 0;
 
     public static EnemyFightHandler Instance { get; private set; }
 
@@ -30,161 +28,51 @@ public class EnemyFightHandler : MonoBehaviour
         }
     }
 
-    internal void RegisterEnemy(Enemy enemy, Transform enemyParent, TMP_Text enemyCrowdCounterText)
-    {
-        registeredEnemy = enemy;
-        crowdCounterText = enemyCrowdCounterText;
-
-        // Dynamically calculate enemy count based on DoorBonusHandler
-        int dynamicEnemyCount = CalculateDynamicEnemyCount();
-        for (int i = 0; i < dynamicEnemyCount; i++)
-        {
-            Instantiate(enemyPrefab, enemyParent);
-        }
-        UpdateCrowdCounterText(enemyParent);
-        FightPrep(enemy);
-    }
-
     private int CalculateDynamicEnemyCount()
     {
-        int potentialMin = DoorBonusHandler.Instance.potentialMinCrowd;
-        int potentialMax = DoorBonusHandler.Instance.potentialMaxCrowd;
-        return Mathf.RoundToInt((potentialMin + potentialMax) / 2f);
+        int potentialMin = (int)(DoorBonusHandler.Instance.potentialMinCrowd * 0.6f);
+        int potentialMax = (int)(DoorBonusHandler.Instance.potentialMaxCrowd * 0.4f);
+        return Mathf.RoundToInt((potentialMin + potentialMax));
     }
 
-    private void UpdateCrowdCounterText(Transform enemyParent)
+    internal void RegisterEnemy(Enemy enemy, Transform enemyParent, TMP_Text enemyCrowdCounterText, Doors door)
     {
-        if (crowdCounterText != null)
+        registeredEnemy = enemy;
+        registeredEnemyParent = enemyParent;
+
+        dynamicEnemyCount = CalculateDynamicEnemyCount();
+        AddRunners(dynamicEnemyCount);
+
+
+        fightingDoor = door;
+        fightingDoor.SetBonusType(BonusType.Difference, BonusType.Difference);
+        fightingDoor.SetBonusAmount(dynamicEnemyCount +1 , dynamicEnemyCount + 1);
+        fightingDoor.ConfigureDoors();
+        DoorBonusHandler.Instance.doorsList.Add(fightingDoor);
+    }
+
+    private void AddRunners(float bonusAmount)
+    {
+        for (int i = 0; i < bonusAmount; i++)
         {
-            crowdCounterText.text = enemyParent.childCount.ToString();
+            Instantiate(enemyPrefab, registeredEnemyParent);
         }
     }
 
-    public void FightPrep(Enemy enemy)
+    public void RemoveRunners(Transform runnerToDestroy)
     {
-        currentFightRow = 0;
-        isFightInProgress = false;
-        enemy.CrowdDistribution(GameManager.GameState.FightPrep);
+        runnerToDestroy.SetParent(null);
+        Destroy(runnerToDestroy.gameObject);
     }
 
-    public void FightEnemy()
+    public void ResetEnemy()
     {
-        if (isFightInProgress) return;
-
-        int totalRunners = registeredEnemy.enemyParent.childCount;
-        int startIndex = currentFightRow * RUNNERS_PER_FIGHT;
-        int endIndex = Mathf.Min(startIndex + RUNNERS_PER_FIGHT, totalRunners);
-
-        if (startIndex >= totalRunners)
+        if (registeredEnemy != null)
         {
-            return;
+            Destroy(registeredEnemy.gameObject);
         }
-
-        StartCoroutine(ExecuteRowFight(startIndex, endIndex));
-    }
-
-    private IEnumerator ExecuteRowFight(int startIndex, int endIndex)
-    {
-        isFightInProgress = true;
-
-        for (int i = startIndex; i < endIndex; i++)
-        {
-            Transform enemyRunner = registeredEnemy.enemyParent.GetChild(i);
-            Transform enemyObject = enemyRunner.Find("Enemy");
-            Animator enemyAnimator = enemyObject.GetComponent<Animator>();
-
-            // Run forward
-            enemyAnimControl.Run(enemyAnimator);
-            StartCoroutine(MoveRunner(enemyRunner, Vector3.back * FIGHT_DISTANCE));
-            yield return new WaitForSeconds(0.5f);
-        }
-
-        yield return new WaitForSeconds(1f);
-
-        // Execute fight and destruction
-        for (int i = startIndex; i < endIndex; i++)
-        {
-            Transform enemyRunner = registeredEnemy.enemyParent.GetChild(i);
-            Transform enemyObject = enemyRunner.Find("Enemy");
-            Animator enemyAnimator = enemyObject.GetComponent<Animator>();
-
-            enemyAnimControl.Fight(enemyAnimator);
-            yield return new WaitForSeconds(0.5f);
-
-            if (CanDestroyPlayerRunner())
-            {
-                DestroyPlayerRunner();
-                Destroy(enemyRunner.gameObject);
-            }
-            else
-            {
-                break;
-            }
-        }
-
-        // Advance remaining runners
-        AdvanceRemainingRunners();
-
-        currentFightRow++;
-        isFightInProgress = false;
-        FightEnemy(); // Continue to next row
-    }
-
-    private void AdvanceRemainingRunners()
-    {
-        int totalRunners = registeredEnemy.enemyParent.childCount;
-        for (int i = 0; i < totalRunners; i++)
-        {
-            Transform runner = registeredEnemy.enemyParent.GetChild(i);
-            Transform enemyObject = runner.Find("Enemy");
-            Animator enemyAnimator = enemyObject.GetComponent<Animator>();
-
-            enemyAnimControl.FightPrep(enemyAnimator);
-            runner.localPosition += Vector3.back * ROW_ADVANCE_DISTANCE;
-        }
-    }
-
-    private IEnumerator MoveRunner(Transform runner, Vector3 direction)
-    {
-        float elapsedTime = 0;
-        float moveDuration = 1f;
-        Vector3 startPosition = runner.localPosition;
-        Vector3 endPosition = startPosition + direction;
-
-        while (elapsedTime < moveDuration)
-        {
-            runner.localPosition = Vector3.Lerp(startPosition, endPosition, elapsedTime / moveDuration);
-            elapsedTime += Time.deltaTime;
-            yield return null;
-        }
-
-        runner.localPosition = endPosition;
-    }
-
-    public int GetEnemyRunnerCount()
-    {
-        return registeredEnemy.enemyParent.childCount;
-    }
-
-    public bool CanDestroyEnemyRunner()
-    {
-        return registeredEnemy.enemyParent.childCount > 0;
-    }
-
-    public void DestroyEnemyRunner()
-    {
-        Transform enemyToDestroy = registeredEnemy.enemyParent.GetChild(0);
-        Destroy(enemyToDestroy.gameObject);
-    }
-
-    private bool CanDestroyPlayerRunner()
-    {
-        return FindObjectOfType<PlayerCrowdSystemControl>().runnerParent.childCount > 0;
-    }
-
-    private void DestroyPlayerRunner()
-    {
-        Transform playerToDestroy = FindObjectOfType<PlayerCrowdSystemControl>().runnerParent.GetChild(0);
-        Destroy(playerToDestroy.gameObject);
+        registeredEnemy = null;
+        registeredEnemyParent = null;
+        DoorBonusHandler.Instance.EnemyDoorDeleter();
     }
 }

@@ -3,22 +3,18 @@ using UnityEngine;
 
 public class TileManager : MonoBehaviour
 {
-    [Header("Elements")]
-    [SerializeField] private Tile[] tilePrefab;
-    [SerializeField] private int maxTileCount = 5;
+    [Header("Tile Settings")]
+    [SerializeField] private Tile[] tilePrefabs;
+    [SerializeField] private Tile fightTilePrefab;
+    [SerializeField] private int maxRegularTiles = 5;
     [SerializeField] private Vector3 spawnPosition = Vector3.zero;
-    [SerializeField] private List<Tile> tiles;
+    [SerializeField] private List<Tile> activeTiles = new List<Tile>();
 
-    [Header("Elements")]
-    [SerializeField] private Tile fightTile;
-    [SerializeField] private int fightCountDown = 5;
-
-    // Flag to prevent spawning during scene shutdown
     private bool isShuttingDown = false;
+    private int regularTileCount = 0;
 
     private void OnApplicationQuit()
     {
-        // Set flag to prevent further tile spawning
         isShuttingDown = true;
     }
 
@@ -29,61 +25,73 @@ public class TileManager : MonoBehaviour
 
     private void InitialSpawn()
     {
-        for (int i = 0; i < maxTileCount; i++)
+        for (int i = 0; i < maxRegularTiles; i++)
         {
             SpawnRegularTile();
         }
+        SpawnFightTile();
     }
 
-    public void TileSpawner()
+    public void TileSpawner(bool spawnFightTile)
     {
-        if (tiles.Count < maxTileCount && !isShuttingDown && fightCountDown > 0)
+        if (isShuttingDown) return;
+
+        if (spawnFightTile)
+        {
+            SpawnFightTile();
+        }
+        else
         {
             SpawnRegularTile();
-        }
-        else if(!isShuttingDown && fightCountDown > 0)
-        {
-            SpawnFightTile(); //bunu kapatmak gerekebilir
         }
     }
 
     private void SpawnRegularTile()
     {
-        Tile tileToCreate = tilePrefab[Random.Range(0, tilePrefab.Length)];
+        if (regularTileCount >= maxRegularTiles) return;
 
-        if (tiles.Count > 0)
-        {
-            spawnPosition.z += tileToCreate.GetChunkLength() / 2;
-        }
+        Tile tileToCreate = tilePrefabs[Random.Range(0, tilePrefabs.Length)];
+        UpdateSpawnPosition(tileToCreate);
 
         Tile newTile = Instantiate(tileToCreate, spawnPosition, Quaternion.identity, transform);
         newTile.tileManager = this;
+        activeTiles.Add(newTile);
 
-        spawnPosition.z += tileToCreate.GetChunkLength() / 2;
-        fightCountDown--;
+        UpdateSpawnPosition(tileToCreate);
+        regularTileCount++;
     }
 
     private void SpawnFightTile()
     {
-        Tile tileToCreate = fightTile;
-
-        spawnPosition.z += tileToCreate.GetChunkLength() / 2;
-
+        Tile tileToCreate = fightTilePrefab;
+        UpdateSpawnPosition(tileToCreate);
 
         Tile newTile = Instantiate(tileToCreate, spawnPosition, Quaternion.identity, transform);
         newTile.tileManager = this;
-        tiles.Add(newTile);
 
-        spawnPosition.z += tileToCreate.GetChunkLength() / 2;
-        fightCountDown = 5;
+        UpdateSpawnPosition(tileToCreate);
+        regularTileCount = 0; // Reset regular tile count after a fight tile
     }
 
-    public void RemoveTile(Tile tile)
+    private void UpdateSpawnPosition(Tile tile)
     {
-        if (!isShuttingDown && tiles.Count > 0 && tiles[0] == tile)
+        spawnPosition.z += tile.GetChunkLength() / 2;
+    }
+
+    public void RemoveRegularTile(Tile tile)
+    {
+        if (!isShuttingDown && activeTiles.Contains(tile))
         {
-            tiles.RemoveAt(0);
-            TileSpawner();
+            activeTiles.Remove(tile);
+            TileSpawner(false);
+        }
+    }
+
+    public void RemoveFightTile(Tile tile)
+    {
+        if (!isShuttingDown)
+        {
+            TileSpawner(true);
         }
     }
 }

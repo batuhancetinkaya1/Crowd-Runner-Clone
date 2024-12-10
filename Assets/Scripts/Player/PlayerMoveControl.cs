@@ -5,8 +5,8 @@ using UnityEngine;
 public class PlayerMoveControl : MonoBehaviour
 {
     [Header("Settings")]
-    [SerializeField] float speed = 3f;
-    [SerializeField] float slideSpeed = 1f;
+    [SerializeField] internal float speed = 3f;
+    [SerializeField] private float slideSpeed = 1f;
 
     [SerializeField] private Vector3 currentPosition;
 
@@ -33,5 +33,10 @@ public class PlayerMoveControl : MonoBehaviour
         currentPosition.x = Mathf.Clamp(currentPosition.x, -roadWidth / 2 + playerCrowdSystemControl.GetCrowRadius(), roadWidth / 2 - playerCrowdSystemControl.GetCrowRadius());
 
         transform.position = currentPosition;
+    }
+
+    public void SetSpeed(float amount)
+    {
+        speed = amount;
     }
 }

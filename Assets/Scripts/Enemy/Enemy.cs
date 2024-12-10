@@ -5,54 +5,117 @@ using UnityEngine;
 
 public class Enemy : MonoBehaviour
 {
+    [Header("Fermat Spiral Configuration")]
     [SerializeField] internal Transform enemyParent;
-    [SerializeField] private EnemyAnimControl enemyAnimControl;
+    [SerializeField] internal EnemyAnimControl enemyAnimControl;
+    [SerializeField] private float goldenAngle = 137.5f; // Golden angle in degrees
+    [SerializeField] private float spreadFactor = 0.5f; // Controls the spread of the spiral
+    [SerializeField] float speed = 1f;
+    [SerializeField] private Doors door;
 
     [Header("Text")]
     [SerializeField] private TMP_Text crowdCounterText;
 
     private void Awake()
     {
-        EnemyFightHandler.Instance.RegisterEnemy(this, enemyParent, crowdCounterText);
+        EnemyFightHandler.Instance.RegisterEnemy(this, enemyParent, crowdCounterText, door);
+        CrowdCounterTextUpdater();
+    }
+
+    public void MoveForward()
+    {
+        transform.position -= Vector3.forward * speed * Time.deltaTime;
     }
 
     public void CrowdDistribution(GameManager.GameState gameState)
     {
         switch (gameState)
         {
+            case GameManager.GameState.Game:
+                DistributeFermatSpiral();
+                break;
             case GameManager.GameState.FightPrep:
-                DistributeFightFormation();
+                DistributeFermatSpiral();
+                break;
+            case GameManager.GameState.Fight:
+                DistributeFermatSpiral();
                 break;
         }
     }
 
-    private void DistributeFightFormation()
+    private void DistributeFermatSpiral()
     {
-        int runnersCount = enemyParent.childCount; // Runner sayýsý
-        int runnersPerRow = 10; // Her sýrada kaç runner olacaðý
-
-        float minX = -4.5f; // X eksenindeki minimum pozisyon
-        float maxX = 4.5f;  // X eksenindeki maksimum pozisyon
-        float zStart = 0f; // En uzak sýranýn Z konumu
-        float zStep = 1f; // Sýralar arasýndaki mesafe (negatif, bize doðru)
-
-        float xStep = (maxX - minX) / (runnersPerRow - 1); // X eksenindeki mesafe
-
-        for (int i = 0; i < runnersCount; i++)
+        for (int i = 0; i < enemyParent.childCount; i++)
         {
-            Transform runner = enemyParent.GetChild(i);
-            Transform enemy = runner.Find("Enemy");
-            Animator enemyAnimator = enemy.GetComponent<Animator>();
-            enemyAnimControl.FightPrep(enemyAnimator);
-
-            int row = i / runnersPerRow; // Kaçýncý sýrada olduðumuzu hesapla
-            int col = i % runnersPerRow; // Sýradaki konumu hesapla
-
-            float x = maxX - col * xStep; // X konumu
-            float z = zStart + row * zStep; // Z konumu (bize doðru)
-
-            runner.localPosition = new Vector3(x, 0, z); // Runner'ý yeni pozisyona taþý
+            enemyParent.GetChild(i).localPosition = GetRunnerLocalPosition(i);
         }
     }
 
+    private Vector3 GetRunnerLocalPosition(int index)
+    {
+        // More accurate Fermat spiral calculation
+        float t = index + 0.5f; // Adjusted to start from center
+        float radius = spreadFactor * Mathf.Sqrt(t);
+        float angle = index * goldenAngle * Mathf.Deg2Rad;
+        float x = radius * Mathf.Cos(angle);
+        float z = radius * Mathf.Sin(angle);
+        return new Vector3(x, 0, z);
+    }
+
+    public void ModifyGoldenAngle(float angleChange = -0.01f)
+    {
+        if (GameManager.Instance.CurrentState == GameManager.GameState.Game)
+        {
+            goldenAngle += angleChange;
+            CrowdDistribution(GameManager.GameState.Game); // Immediately redistribute
+        }
+        else if (GameManager.Instance.CurrentState == GameManager.GameState.Fight)
+        {
+            goldenAngle = 137.5f;
+            CrowdDistribution(GameManager.GameState.Fight); // Immediately redistribute
+        }
+        else if (GameManager.Instance.CurrentState == GameManager.GameState.FightPrep)
+        {
+            goldenAngle = 137.5f;
+            CrowdDistribution(GameManager.GameState.FightPrep);
+        }
+    }
+
+    public void DetectObjects()
+    {
+        // Yarýçap içerisindeki Collider'larý bul
+        Collider[] detectColliders = Physics.OverlapSphere(transform.position, GetCrowRadius() + 30);
+
+        if (detectColliders.Length > 0)
+        {
+            for (int i = 0; i < detectColliders.Length; i++)
+            {
+                if (detectColliders[i].CompareTag("Player"))
+                {
+                    GameManager.Instance.SetGameState(GameManager.GameState.FightPrep);
+                }
+            }
+        }
+    }
+
+    public float GetCrowRadius()
+    {
+        float radius = spreadFactor * Mathf.Sqrt(GetCrowdCount());
+        return radius;
+    }
+
+    public void CrowdCounterTextUpdater()
+    {
+        crowdCounterText.text = enemyParent.childCount.ToString();
+    }
+
+    internal int GetCrowdCount()
+    {
+        return enemyParent.childCount;
+    }
+
+    public void SetSpeed(float amount)
+    {
+        speed = amount;
+    }
 }

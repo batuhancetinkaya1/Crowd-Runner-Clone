@@ -7,6 +7,7 @@ TagManager:
   - Destroyer
   - Enemy
   - FightArea
+  - TileFight
   layers:
   - Default
   - TransparentFX

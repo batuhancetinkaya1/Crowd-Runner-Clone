@@ -111,6 +111,7 @@ MonoBehaviour:
   leftDoorAmount: 10
   bonusColor: {r: 0, g: 0.14186525, b: 1, a: 0.74509805}
   penaltyColor: {r: 1, g: 0.07661381, b: 0, a: 0.74509805}
+  isRegularDoor: 1
 --- !u!1 &1033483153420183750
 GameObject:
   m_ObjectHideFlags: 0

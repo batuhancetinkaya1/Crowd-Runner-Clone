@@ -45,20 +45,4 @@ public class GameManager : MonoBehaviour
     {
         CurrentState = newState;
     }
-
-    private void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            SetGameState(GameState.FightPrep);
-        }
-        else if (Input.GetKeyDown(KeyCode.B))
-        {
-            SetGameState(GameState.Game);
-        }
-        else if (Input.GetKeyDown(KeyCode.A))
-        {
-            SetGameState(GameState.Fight);
-        }
-    }
 }

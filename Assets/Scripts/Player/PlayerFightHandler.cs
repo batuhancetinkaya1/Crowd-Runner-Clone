@@ -1,137 +1,179 @@
 using UnityEngine;
-using TMPro;
 using System.Collections;
+using TMPro;
 
 public class PlayerFightHandler : MonoBehaviour
 {
     [SerializeField] private PlayerCrowdSystemControl playerCrowdSystem;
     [SerializeField] private PlayerAnimControl playerAnimControl;
     [SerializeField] private EnemyFightHandler enemyFightHandler;
+    [SerializeField] private PlayerMoveControl playerMoveControl;
 
-    private const float FIGHT_DISTANCE = 5f;
-    private const float ROW_ADVANCE_DISTANCE = 1f;
-    private const int RUNNERS_PER_FIGHT = 10;
+    [Header("Fight Speed Settings")]
+    [SerializeField] private float gameSpeed = 5f;
+    [SerializeField] private float fightPrepSpeed = 1.5f;
+    [SerializeField] private float fightSpeed = 0f;
+    [SerializeField] private float marchspeed = 0.1f;
 
-    private int currentFightRow = 0;
-    private bool isFightInProgress = false;
+    [Header("Fight Positioning")]
+    [SerializeField] private float initialFightDistance = 1f;
+    [SerializeField] private float minFightDistance = 0.1f;
+    [SerializeField] private float fightDistanceReductionRate = 0.5f;
+    [SerializeField] private float smoothSpeed = 5f;
+    [SerializeField] private Vector3 smoothedPosition;
 
+
+    private bool isFighting = false;
+
+    // Prepare the player for fight by centering and setting speed
     public void FightPrep()
     {
-        currentFightRow = 0;
-        isFightInProgress = false;
+        // Set speed to fight preparation speed
+        playerMoveControl.SetSpeed(fightPrepSpeed);
     }
 
-    public void FightPlayer()
+    // Check conditions to initiate the fight
+    public void CheckFightConditions()
     {
-        if (isFightInProgress) return;
+        // Center the player on the road
+        smoothedPosition = Vector3.Lerp(transform.position, new Vector3(0, transform.position.y, transform.position.z), smoothSpeed * Time.deltaTime);
+        transform.position = smoothedPosition;
 
-        int totalRunners = playerCrowdSystem.runnerParent.childCount;
-        int startIndex = currentFightRow * RUNNERS_PER_FIGHT;
-        int endIndex = Mathf.Min(startIndex + RUNNERS_PER_FIGHT, totalRunners);
+        if (isFighting || enemyFightHandler.registeredEnemy == null) return;
 
-        if (startIndex >= totalRunners)
+        int initialPlayerRunners = playerCrowdSystem.GetCrowdCount();
+        int initialEnemyRunners = enemyFightHandler.registeredEnemyParent.childCount;
+        int runnersToDestroy = Mathf.Min(initialPlayerRunners, initialEnemyRunners);
+
+        float playerCrowdRadius = playerCrowdSystem.GetCrowRadius();
+        float enemyCrowdRadius = enemyFightHandler.registeredEnemy.GetCrowRadius();
+        float distanceBetweenCrowds = Mathf.Abs(
+            enemyFightHandler.registeredEnemy.transform.position.z - transform.position.z
+        );
+
+        if (distanceBetweenCrowds <= (playerCrowdRadius + enemyCrowdRadius + initialFightDistance))
         {
-            CheckFightOutcome();
-            return;
+            InitiateFight(runnersToDestroy);
         }
-
-        StartCoroutine(ExecuteRowFight(startIndex, endIndex));
     }
 
-    private IEnumerator ExecuteRowFight(int startIndex, int endIndex)
+    // Start the fight sequence
+    private void InitiateFight(int runnersToDestroy)
     {
-        isFightInProgress = true;
+        isFighting = true;
+        playerMoveControl.SetSpeed(fightSpeed);
+        enemyFightHandler.registeredEnemy.SetSpeed(fightSpeed);
+        StartCoroutine(DestroyRunnersWithDelay(runnersToDestroy));
+    }
 
-        for (int i = startIndex; i < endIndex; i++)
+    // Destroy runners on both sides with delays
+    private IEnumerator DestroyRunnersWithDelay(int runnersToDestroy)
+    {
+        playerMoveControl.SetSpeed(marchspeed);
+        enemyFightHandler.registeredEnemy.SetSpeed(marchspeed);
+        for (int i = 0; i < runnersToDestroy; i++)
         {
-            Transform playerRunner = playerCrowdSystem.runnerParent.GetChild(i);
-            Transform playerObject = playerRunner.Find("Player");
-            Animator playerAnimator = playerObject.GetComponent<Animator>();
+            yield return new WaitForSeconds(0.01f);
 
-            // Run forward
-            playerAnimControl.Run(playerAnimator);
-            StartCoroutine(MoveRunner(playerRunner, Vector3.forward * FIGHT_DISTANCE));
-            yield return new WaitForSeconds(0.5f);
-        }
-
-        yield return new WaitForSeconds(1f);
-
-        // Execute fight and destruction
-        for (int i = startIndex; i < endIndex; i++)
-        {
-            Transform playerRunner = playerCrowdSystem.runnerParent.GetChild(i);
-            Transform playerObject = playerRunner.Find("Player");
-            Animator playerAnimator = playerObject.GetComponent<Animator>();
-
-            playerAnimControl.Fight(playerAnimator);
-            yield return new WaitForSeconds(0.5f);
-
-            // Destroy runner if enemy exists
-            if (enemyFightHandler.CanDestroyEnemyRunner())
+            if (playerCrowdSystem.runnerParent.childCount > 0 &&
+                enemyFightHandler.registeredEnemyParent.childCount > 0)
             {
-                enemyFightHandler.DestroyEnemyRunner();
-                Destroy(playerRunner.gameObject);
+                Transform playerRunnerToDestroy = playerCrowdSystem.runnerParent.GetChild(
+                    playerCrowdSystem.runnerParent.childCount - 1
+                );
+                Transform enemyRunnerToDestroy = enemyFightHandler.registeredEnemyParent.GetChild(
+                    enemyFightHandler.registeredEnemyParent.childCount - 1
+                );
+
+                Animator playerRunnerAnimator = playerRunnerToDestroy.GetComponent<Animator>();
+                Animator enemyRunnerAnimator = enemyRunnerToDestroy.GetComponent<Animator>();
+
+                if (playerRunnerAnimator != null)
+                    playerAnimControl.Fight(playerRunnerAnimator);
+
+                if (enemyRunnerAnimator != null)
+                    enemyFightHandler.registeredEnemy.enemyAnimControl.Fight(enemyRunnerAnimator);
+
+                AdjustFightDistance(i + 1, runnersToDestroy);
+                enemyFightHandler.RemoveRunners(playerRunnerToDestroy);
+                enemyFightHandler.registeredEnemy.CrowdDistribution(GameManager.GameState.Fight);  //?
+                enemyFightHandler.RemoveRunners(enemyRunnerToDestroy);
+                playerCrowdSystem.CrowdDistribution(GameManager.GameState.Fight);  //?
+                playerCrowdSystem.CrowdCounterTextUpdater();
+                enemyFightHandler.registeredEnemy.CrowdCounterTextUpdater();
             }
-            else
-            {
-                break;
-            }
         }
 
-        // Advance remaining runners
-        AdvanceRemainingRunners();
-
-        currentFightRow++;
-        isFightInProgress = false;
-        FightPlayer(); // Continue to next row
+        CheckFightCompletion();
     }
 
-    private void AdvanceRemainingRunners()
+    // Adjust fight distance dynamically during the fight
+    private void AdjustFightDistance(int currentDestroyedRunners, int totalRunnersToDestroy)
     {
-        int totalRunners = playerCrowdSystem.runnerParent.childCount;
-        for (int i = 0; i < totalRunners; i++)
-        {
-            Transform runner = playerCrowdSystem.runnerParent.GetChild(i);
-            Transform playerObject = runner.Find("Player");
-            Animator playerAnimator = playerObject.GetComponent<Animator>();
+        // Calculate progress ratio and target fight distance
+        float progressRatio = (float)currentDestroyedRunners / totalRunnersToDestroy;
+        float currentFightDistance = Mathf.Lerp(initialFightDistance, minFightDistance,
+            progressRatio * fightDistanceReductionRate);
 
-            playerAnimControl.FightPrep(playerAnimator);
-            runner.localPosition += Vector3.forward * ROW_ADVANCE_DISTANCE;
+        // Allow a slight overlap at the edges
+        float edgeOverlap = 0.1f; // Allow 0.1f beyond their edges
+
+        // Calculate minimum distance including radii and edge overlap
+        float minimumDistance = playerCrowdSystem.GetCrowRadius() +
+                                enemyFightHandler.registeredEnemy.GetCrowRadius() -
+                                edgeOverlap +
+                                currentFightDistance;
+
+        Vector3 playerPosition = transform.position;
+        Vector3 enemyPosition = enemyFightHandler.registeredEnemy.transform.position;
+
+        Vector3 directionToEnemy = (enemyPosition - playerPosition).normalized;
+        float currentDistanceBetween = Vector3.Distance(playerPosition, enemyPosition);
+
+        // If current distance is smaller than required minimum, adjust positions
+        if (currentDistanceBetween < minimumDistance)
+        {
+            float adjustmentDistance = (minimumDistance - currentDistanceBetween) * 0.5f;
+            Vector3 adjustmentOffset = directionToEnemy * adjustmentDistance;
+
+            // Adjust player and enemy positions dynamically
+            transform.position -= adjustmentOffset;
+            enemyFightHandler.registeredEnemy.transform.position += adjustmentOffset;
         }
     }
 
-    private IEnumerator MoveRunner(Transform runner, Vector3 direction)
+
+    // Check fight outcome
+    private void CheckFightCompletion()
     {
-        float elapsedTime = 0;
-        float moveDuration = 1f;
-        Vector3 startPosition = runner.localPosition;
-        Vector3 endPosition = startPosition + direction;
+        int remainingPlayerRunners = playerCrowdSystem.GetCrowdCount();
+        int remainingEnemyRunners = enemyFightHandler.registeredEnemyParent.childCount;
 
-        while (elapsedTime < moveDuration)
+        if (remainingPlayerRunners > 0 && remainingEnemyRunners == 0)
         {
-            runner.localPosition = Vector3.Lerp(startPosition, endPosition, elapsedTime / moveDuration);
-            elapsedTime += Time.deltaTime;
-            yield return null;
+            FinishFight(true);
         }
-
-        runner.localPosition = endPosition;
+        else if (remainingPlayerRunners <= 0)
+        {
+            FinishFight(false);
+        }
     }
 
-    private void CheckFightOutcome()
+    // Handle fight result
+    private void FinishFight(bool playerWon)
     {
-        int playerRunners = playerCrowdSystem.runnerParent.childCount;
-        int enemyRunners = enemyFightHandler.GetEnemyRunnerCount();
-
-        if (enemyRunners > playerRunners)
+        if (playerWon)
         {
-            // Enemy wins
-            GameManager.Instance.SetGameState(GameManager.GameState.GameOver);
+            GameManager.Instance.SetGameState(GameManager.GameState.Game);
+            isFighting = false;
+            playerMoveControl.SetSpeed(gameSpeed);
+            enemyFightHandler.registeredEnemy.SetSpeed(gameSpeed);
+            enemyFightHandler.ResetEnemy();
         }
         else
         {
-            // Player wins
-            GameManager.Instance.SetGameState(GameManager.GameState.Game);
-            DoorBonusHandler.Instance.ResetPotantialCrowd();
+            Time.timeScale = 0f;
+            GameManager.Instance.SetGameState(GameManager.GameState.GameOver);
         }
     }
 }

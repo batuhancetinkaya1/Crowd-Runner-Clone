@@ -1,3 +1,4 @@
+using UnityEditor.UI;
 using UnityEngine;
 
 public class Tile : MonoBehaviour
@@ -9,15 +10,23 @@ public class Tile : MonoBehaviour
     {
         if (other.CompareTag("Destroyer"))
         {
-            Destroy(gameObject);
+            DestroyTile();        
         }
+    }
+    private void DestroyTile()
+    {
+        Destroy(gameObject);
     }
 
     private void OnDestroy()
     {
-        if (tileManager != null && !ReferenceEquals(tileManager, null))
+        if (tileManager != null && !ReferenceEquals(tileManager, null) && !gameObject.CompareTag("TileFight"))
         {
-            tileManager.RemoveTile(this);
+            tileManager.RemoveRegularTile(this);
+        }
+        else if(tileManager != null && !ReferenceEquals(tileManager, null) && gameObject.CompareTag("TileFight"))
+        {
+            tileManager.RemoveFightTile(this);
         }
     }
 

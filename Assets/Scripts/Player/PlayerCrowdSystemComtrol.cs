@@ -7,17 +7,11 @@ public class PlayerCrowdSystemControl : MonoBehaviour
 {
     [Header("Fermat Spiral Configuration")]
     [SerializeField] private float goldenAngle = 137.5f; // Golden angle in degrees
-    [SerializeField] private float spreadFactor = 0.5f; // Controls the spread of the spiral
+    [SerializeField] private float spreadFactor = 0.25f; // Controls the spread of the spiral
     [SerializeField] internal Transform runnerParent;
     [SerializeField] private GameObject runnerPrefab;
 
-    [Header("Fight Formation Configuration")]
     [SerializeField] private PlayerAnimControl playerAnimControl;
-    [SerializeField] private int runnersPerRow = 10;
-    [SerializeField] private float minX = -4.5f; // X eksenindeki minimum pozisyon
-    [SerializeField] private float maxX = 4.5f;  // X eksenindeki maksimum pozisyon
-    [SerializeField] private float zStart = 0f; // En uzak sýranýn Z konumu
-    [SerializeField] private float zStep = -1f;
 
     [Header("Text")]
     [SerializeField] private TMP_Text crowdCounterText;
@@ -42,7 +36,10 @@ public class PlayerCrowdSystemControl : MonoBehaviour
                 DistributeFermatSpiral();
                 break;
             case GameManager.GameState.FightPrep:
-                DistributeFightFormation();
+                DistributeFermatSpiral();
+                break;
+            case GameManager.GameState.Fight:
+                DistributeFermatSpiral();
                 break;
         }
     }
@@ -52,33 +49,6 @@ public class PlayerCrowdSystemControl : MonoBehaviour
         for (int i = 0; i < runnerParent.childCount; i++)
         {
             runnerParent.GetChild(i).localPosition = GetRunnerLocalPosition(i);
-        }
-    }
-
-    private void DistributeFightFormation()
-    {
-
-        this.transform.position = new Vector3(0, this.transform.position.y, this.transform.position.z);
-
-        int runnersCount = runnerParent.childCount; // Runner sayýsý
-
-        float xStep = (maxX - minX) / (runnersPerRow - 1); // X eksenindeki mesafe
-
-        for (int i = 0; i < runnersCount; i++)
-        {
-            Transform runner = runnerParent.GetChild(i); // i. Runner nesnesini al
-            Transform player = runner.Find("Player"); // Runner altýnda "Player" adlý Transform'u bul
-            Animator playerAnimator = player.GetComponent<Animator>(); // Player'ýn Animator bileþenine eriþ
-            playerAnimControl.FightPrep(playerAnimator); // Animator'ý iþleme gönder
-
-
-            int row = i / runnersPerRow; // Kaçýncý sýrada olduðumuzu hesapla
-            int col = i % runnersPerRow; // Sýradaki konumu hesapla
-
-            float x = minX + col * xStep; // X konumu
-            float z = zStart + row * zStep; // Z konumu (bize doðru)
-
-            runner.localPosition = new Vector3(x, 0, z); // Runner'ý yeni pozisyona taþý
         }
     }
 
@@ -99,23 +69,26 @@ public class PlayerCrowdSystemControl : MonoBehaviour
         return radius;
     }
 
-    public void AdjustSpread(float newSpreadFactor)
-    {
-        spreadFactor = newSpreadFactor;
-        CrowdDistribution(GameManager.GameState.Game); // Immediately redistribute
-    }
-
     public void ModifyGoldenAngle(float angleChange = -0.01f)
     {
-        goldenAngle += angleChange;
-        CrowdDistribution(GameManager.GameState.Game); // Immediately redistribute
+        if (GameManager.Instance.CurrentState == GameManager.GameState.Game)
+        {
+            goldenAngle += angleChange;
+            CrowdDistribution(GameManager.GameState.Game); // Immediately redistribute
+        }
+        else if(GameManager.Instance.CurrentState == GameManager.GameState.Fight)
+        {
+            goldenAngle = 137.5f;
+            CrowdDistribution(GameManager.GameState.Fight); // Immediately redistribute
+        }
+        else if (GameManager.Instance.CurrentState == GameManager.GameState.FightPrep)
+        {
+            goldenAngle = 137.5f;
+            CrowdDistribution(GameManager.GameState.FightPrep);
+        }
     }
 
-    public void CrowdCounterTextUpdater()
-    {
-        crowdCounterText.text = runnerParent.childCount.ToString();
-    }
-
+    #region ApplyBonus
     public void ApplyBonus(BonusType bonusType, int bonusAmount)
     {
         switch (bonusType)
@@ -159,6 +132,12 @@ public class PlayerCrowdSystemControl : MonoBehaviour
             runnerToDestroy.SetParent(null);
             Destroy(runnerToDestroy.gameObject);
         }
+    }
+    #endregion 
+
+    public void CrowdCounterTextUpdater()
+    {
+        crowdCounterText.text = runnerParent.childCount.ToString();
     }
 
     internal int GetCrowdCount()

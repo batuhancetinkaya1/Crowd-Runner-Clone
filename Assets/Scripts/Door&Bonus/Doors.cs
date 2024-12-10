@@ -23,30 +23,38 @@ public class Doors : MonoBehaviour
     [SerializeField] private Color bonusColor;
     [SerializeField] private Color penaltyColor;
 
+    [SerializeField] private bool isRegularDoor = true;
+
     private void Awake()
     {
-        // Register this door with the singleton DoorBonusHandler
-        if (DoorBonusHandler.Instance != null)
+        if (DoorBonusHandler.Instance != null && isRegularDoor)
         {
             DoorBonusHandler.Instance.RegisterDoor(this);
         }
-        else
-        {
-            Debug.LogWarning("DoorBonusHandler instance not found when registering door!");
-        }
+        //else
+        //{
+        //    Debug.LogWarning("DoorBonusHandler instance not found when registering door!");
+        //}
     }
 
     private void OnDestroy()
     {
-        DoorBonusHandler.Instance.RemoveFromList(this);
+        if (DoorBonusHandler.Instance != null)
+        {
+            DoorBonusHandler.Instance.RemoveFromList(this);
+        }
     }
 
     private void Start()
     {
-        ConfigureDoors();
+        if (isRegularDoor)
+        {
+            ConfigureDoors();
+        }
+
     }
 
-    private void ConfigureDoors()
+    public void ConfigureDoors()
     {
         switch (rightDoorBonusType)
         {
