@@ -35,7 +35,7 @@ public class DoorBonusHandler : MonoBehaviour
     [Header("DENEME TEST")]
     [SerializeField] int i = 0;
     [SerializeField] bool isStart = true;
-    int initialMin = 50;
+    int initialMin = 5;
     int initialMax = 150;
 
     int maxbonusamount = 40;
@@ -214,7 +214,7 @@ public class DoorBonusHandler : MonoBehaviour
                 case BonusType.Difference:
                     amount = Random.Range(
                         minBonusAmount,
-                        Mathf.Min(maxbonusamount, MaxCrowd - potentialMaxCrowd));
+                        Mathf.Min(maxbonusamount, potentialMinCrowd - MinCrowd));
                     if (potentialMinCrowd - amount < MinCrowd)
                     {
                         if (potentialMaxCrowd - minBonusAmount < MinCrowd)
@@ -286,7 +286,7 @@ public class DoorBonusHandler : MonoBehaviour
                 case BonusType.Difference:
                     amount = Random.Range(
                         minBonusAmount,
-                        Mathf.Min(maxbonusamount, initialMax - potentialMaxCrowd));
+                        Mathf.Min(maxbonusamount, potentialMinCrowd - initialMin));
 
                     if (potentialMinCrowd - amount < initialMin)
                     {
@@ -343,6 +343,22 @@ public class DoorBonusHandler : MonoBehaviour
         }
         return BonusType.Addition;
     }
+
+    internal void ResetHandler()
+    {
+        initialStateWeights[0] = 0.5f;
+        initialStateWeights[1] = 0.5f;
+        initialStateWeights[2] = 0.0f;
+        initialStateWeights[3] = 0.0f;
+
+        potentialMaxCrowd = 1;
+        potentialMinCrowd = 1;
+
+        currentCrowd = 1;
+
+        i = 0;
+        isStart = true;
+}
 
 
     private void UpdatePotentialCrowd(BonusType leftBonusType, BonusType rightBonusType, int leftBonusAmount, int rightBonusAmount)

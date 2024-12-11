@@ -14,7 +14,7 @@ public class PlayerCrowdSystemControl : MonoBehaviour
     [SerializeField] private PlayerAnimControl playerAnimControl;
 
     [Header("Text")]
-    [SerializeField] private TMP_Text crowdCounterText;
+    [SerializeField] internal TMP_Text crowdCounterText;
     public static PlayerCrowdSystemControl Instance { get; private set; }
 
     private void Awake()
@@ -126,7 +126,11 @@ public class PlayerCrowdSystemControl : MonoBehaviour
             bonusAmount = runnerParent.childCount;
         }
         int runnerAmount = runnerParent.childCount;
-        for (int i = runnerAmount - 1; i >= runnerAmount - bonusAmount + 1; i--)
+        if(runnerAmount - bonusAmount <= 0)
+        {
+            bonusAmount = runnerAmount - 1;
+        }
+        for (int i = runnerAmount - 1; i >= runnerAmount - bonusAmount; i--)
         {
             Transform runnerToDestroy = runnerParent.GetChild(i);
             runnerToDestroy.SetParent(null);
@@ -138,6 +142,11 @@ public class PlayerCrowdSystemControl : MonoBehaviour
     public void CrowdCounterTextUpdater()
     {
         crowdCounterText.text = runnerParent.childCount.ToString();
+    }
+
+    public void CrowdCounterTextUpdater2()
+    {
+        crowdCounterText.text = 1.ToString();
     }
 
     internal int GetCrowdCount()

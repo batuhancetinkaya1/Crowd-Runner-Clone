@@ -13,20 +13,23 @@ public class Tile : MonoBehaviour
             DestroyTile();        
         }
     }
-    private void DestroyTile()
+    public void DestroyTile()
     {
         Destroy(gameObject);
     }
 
     private void OnDestroy()
     {
-        if (tileManager != null && !ReferenceEquals(tileManager, null) && !gameObject.CompareTag("TileFight"))
-        {
-            tileManager.RemoveRegularTile(this);
-        }
-        else if(tileManager != null && !ReferenceEquals(tileManager, null) && gameObject.CompareTag("TileFight"))
+        if (tileManager == null) return;
+
+        // Check if this is a fight tile or regular tile
+        if (gameObject.CompareTag("TileFight"))
         {
             tileManager.RemoveFightTile(this);
+        }
+        else
+        {
+            tileManager.RemoveRegularTile(this);
         }
     }
 

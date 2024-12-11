@@ -67,4 +67,10 @@ public class CameraControl : MonoBehaviour
         Quaternion targetRotation = Quaternion.Euler(fightRotationX, fightRotationY, 0);
         transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, smoothSpeed * Time.deltaTime);
     }
+
+    public void ResetCamera()
+    {
+        transform.position = new Vector3(0, 10, -7.5f);
+        transform.rotation = Quaternion.Euler(45f, 0f, 0f);
+    }
 }

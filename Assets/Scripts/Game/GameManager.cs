@@ -7,6 +7,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private bool isGameOn = true;
     [SerializeField] private bool isFighting = false;
     [SerializeField] private bool isGameOver = false;
+    [SerializeField] private GameState gameState;
 
     public bool IsGameOn => isGameOn;
     public bool IsFightOn => isFighting;
@@ -43,6 +44,8 @@ public class GameManager : MonoBehaviour
 
     public void SetGameState(GameState newState)
     {
+        Debug.Log("state: " + newState+ " Come From");
         CurrentState = newState;
+        gameState = newState;
     }
 }

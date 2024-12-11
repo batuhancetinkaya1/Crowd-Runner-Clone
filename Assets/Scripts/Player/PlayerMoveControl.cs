@@ -5,8 +5,8 @@ using UnityEngine;
 public class PlayerMoveControl : MonoBehaviour
 {
     [Header("Settings")]
-    [SerializeField] internal float speed = 3f;
-    [SerializeField] private float slideSpeed = 1f;
+    [SerializeField] internal float speed = 5f;
+    [SerializeField] private float slideSpeed = 5f;
 
     [SerializeField] private Vector3 currentPosition;
 

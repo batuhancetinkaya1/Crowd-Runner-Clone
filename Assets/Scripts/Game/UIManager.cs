@@ -7,7 +7,8 @@ public class UIManager : MonoBehaviour
 
     [Header("UI Elements")]
     [SerializeField] private GameObject deathPanel;
-    [SerializeField] private Button restartButton;
+    //[SerializeField] private Button restartButton;
+    //[SerializeField] private PlayerResetSystem playerResetSystem;
 
     private void Awake()
     {
@@ -23,10 +24,10 @@ public class UIManager : MonoBehaviour
 
     private void Start()
     {
-        if (restartButton != null)
-        {
-            restartButton.onClick.AddListener(OnRestartButtonPressed);
-        }
+        //if (restartButton != null)
+        //{
+        //    restartButton.onClick.AddListener(OnRestartButtonPressed);
+        //}
 
         if (deathPanel != null)
         {

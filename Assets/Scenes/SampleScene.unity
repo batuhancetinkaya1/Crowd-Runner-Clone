@@ -817,6 +817,7 @@ GameObject:
   - component: {fileID: 597802493}
   - component: {fileID: 597802496}
   - component: {fileID: 597802492}
+  - component: {fileID: 597802499}
   - component: {fileID: 597802491}
   - component: {fileID: 597802490}
   - component: {fileID: 597802495}
@@ -955,6 +956,7 @@ MonoBehaviour:
   bubblePop: {fileID: 8300000, guid: 66715cdf562dc954eac004a77003b53c, type: 3}
   audioSource: {fileID: 597802498}
   loopDelay: 0.1
+  isFighting: 0
 --- !u!65 &597802497
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -1072,6 +1074,20 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &597802499
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 597802489}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 77cc90c258bbce54da5c1848a0fdae3e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerMoveControl: {fileID: 597802492}
+  playerFightHandler: {fileID: 597802496}
 --- !u!1 &715529135
 GameObject:
   m_ObjectHideFlags: 0
@@ -1200,7 +1216,7 @@ MonoBehaviour:
   m_Transition: 1
   m_Colors:
     m_NormalColor: {r: 1, g: 1, b: 1, a: 0}
-    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 0}
     m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
     m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
     m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
@@ -1530,6 +1546,7 @@ MonoBehaviour:
   isGameOn: 1
   isFighting: 0
   isGameOver: 0
+  gameState: 0
 --- !u!4 &1451223125
 Transform:
   m_ObjectHideFlags: 0
@@ -1542,7 +1559,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1660163191}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1451223127
@@ -1625,6 +1643,8 @@ MonoBehaviour:
   tileManager: {fileID: 1660163190}
   doorBonusHandler: {fileID: 1451223128}
   enemyFightHandler: {fileID: 1451223127}
+  cameraControl: {fileID: 330585548}
+  playerResetSystem: {fileID: 597802499}
 --- !u!114 &1451223130
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1638,7 +1658,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   deathPanel: {fileID: 2088987121}
-  restartButton: {fileID: 1092891295}
 --- !u!1 &1592114052
 GameObject:
   m_ObjectHideFlags: 0
@@ -1763,6 +1782,9 @@ MonoBehaviour:
   maxRegularTiles: 5
   spawnPosition: {x: 0, y: 0, z: 0}
   activeTiles: []
+  assignedFightTile: {fileID: 0}
+  isShuttingDown: 0
+  regularTileCount: 0
 --- !u!4 &1660163191
 Transform:
   m_ObjectHideFlags: 0
@@ -1776,7 +1798,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 1451223125}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2088987121
 GameObject:
@@ -1931,6 +1953,5 @@ SceneRoots:
   - {fileID: 832575519}
   - {fileID: 1195376237}
   - {fileID: 82717027}
-  - {fileID: 1660163191}
   - {fileID: 1451223125}
   - {fileID: 597802494}

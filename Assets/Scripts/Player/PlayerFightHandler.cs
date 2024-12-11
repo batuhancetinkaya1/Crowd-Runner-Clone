@@ -28,7 +28,7 @@ public class PlayerFightHandler : MonoBehaviour
     [SerializeField] private float loopDelay = 1.0f;
 
 
-    private bool isFighting = false;
+    public bool isFighting = false;
 
     // Prepare the player for fight by centering and setting speed
     public void FightPrep()
@@ -189,6 +189,7 @@ public class PlayerFightHandler : MonoBehaviour
         else
         {
             Time.timeScale = 0f;
+            UIManager.Instance.ShowDeathPanel();
             GameManager.Instance.SetGameState(GameManager.GameState.GameOver);
         }
     }

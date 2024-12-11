@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Collections;
+using System;
 
 public class GameResetManager : MonoBehaviour
 {
@@ -11,6 +12,8 @@ public class GameResetManager : MonoBehaviour
     [SerializeField] private TileManager tileManager;
     [SerializeField] private DoorBonusHandler doorBonusHandler;
     [SerializeField] private EnemyFightHandler enemyFightHandler;
+    [SerializeField] private CameraControl cameraControl;
+    [SerializeField] private PlayerResetSystem playerResetSystem;
 
     private bool isResetting = false;
 
@@ -33,53 +36,33 @@ public class GameResetManager : MonoBehaviour
 
     private IEnumerator ResetSequence()
     {
-        // First, pause the game and show death panel
-        Time.timeScale = 0f;
-        UIManager.Instance.ShowDeathPanel();
-
-        // Wait for one frame to ensure UI updates
-        //yield return null;
-
-        // Clean up existing objects and systems
+        tileManager.isShuttingDown = true;
         CleanupSystems();
-
-        // Reset time scale
+        UIManager.Instance.HideDeathPanel();
         Time.timeScale = 1f;
 
-        isResetting = false;
+        // Reset tile manager more comprehensively
+        //tileManager.ClearTiles();
+        yield return new WaitForSeconds(2f);
 
-        // Reload the scene
-        //SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-        yield break;
+        tileManager.isShuttingDown = false;
+        tileManager.Start(); // Respawn initial tiles
+
+        GameManager.Instance.SetGameState(GameManager.GameState.Game);
+
+        isResetting = false;
     }
 
     private void CleanupSystems()
     {
-        // Clear door bonus handler
-        if (doorBonusHandler != null)
-        {
-            doorBonusHandler.doorsList.Clear();
-        }
+        tileManager.ClearTiles();
 
-        // Clear enemy fight handler
-        if (enemyFightHandler != null)
-        {
-            enemyFightHandler.ResetEnemyAtEnd();
-        }
+        doorBonusHandler.doorsList.Clear();
+        doorBonusHandler.ResetHandler();
 
-        // Reset tile manager
-        if (tileManager != null)
-        {
-            tileManager.ClearTiles();
-        }
+        enemyFightHandler.ResetEnemyAtEnd();
 
-        // Reset player crowd system
-        if (playerCrowdSystem != null)
-        {
-            for (int i = playerCrowdSystem.runnerParent.childCount - 1; i >= 0; i--)
-            {
-                Destroy(playerCrowdSystem.runnerParent.GetChild(i).gameObject);
-            }
-        }
+        playerResetSystem.PlayerReset();
+        cameraControl.ResetCamera();
     }
 }

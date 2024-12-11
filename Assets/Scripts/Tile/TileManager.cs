@@ -12,15 +12,15 @@ public class TileManager : MonoBehaviour
 
     [SerializeField] private Tile assignedFightTile = null;
 
-    private bool isShuttingDown = false;
-    private int regularTileCount = 0;
+    [SerializeField] public bool isShuttingDown = false;
+    [SerializeField] private int regularTileCount = 0;
 
     private void OnApplicationQuit()
     {
         isShuttingDown = true;
     }
 
-    void Start()
+    public void Start()
     {
         InitialSpawn();
     }
@@ -74,7 +74,7 @@ public class TileManager : MonoBehaviour
         UpdateSpawnPosition(tileToCreate);
         regularTileCount = 0; // Reset regular tile count after a fight tile
 
-        assignedFightTile = tileToCreate;
+        assignedFightTile = newTile;
     }
 
     private void UpdateSpawnPosition(Tile tile)
@@ -95,6 +95,7 @@ public class TileManager : MonoBehaviour
     {
         if (!isShuttingDown)
         {
+            assignedFightTile = null;
             TileSpawner(true);
         }
     }
@@ -106,14 +107,29 @@ public class TileManager : MonoBehaviour
 
     public void ClearTiles()
     {
-        foreach (Tile tile in activeTiles)
+        isShuttingDown = true;
+
+        // Clear regular tiles
+        for (int i = activeTiles.Count - 1; i >= 0; i--)
         {
-            tile.transform.SetParent(null);
-            Destroy(tile);
+            Tile tile = activeTiles[i];
+            if (tile != null)
+            {
+                tile.transform.SetParent(null);
+                Destroy(tile.gameObject);
+            }
         }
-        assignedFightTile.transform.SetParent(null);
-        Destroy(assignedFightTile);
+
+        // Clear fight tile
+        if (assignedFightTile != null)
+        {
+            isShuttingDown = true;
+            assignedFightTile.transform.SetParent(null);
+            Destroy(assignedFightTile.gameObject);
+        }
 
         activeTiles.Clear();
+        regularTileCount = 0;
+        spawnPosition = Vector3.zero;
     }
 }

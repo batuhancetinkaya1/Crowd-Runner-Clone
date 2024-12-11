@@ -44,14 +44,9 @@ public class InputManager : MonoBehaviour
                 HandleFightState();
                 break;
             case GameManager.GameState.GameOver:
-                HandleGameOverState();
+                //HandleGameOverState();
                 break;
         }
-    }
-
-    private void HandleGameOverState()
-    {
-        GameResetManager.Instance.ResetGame();
     }
 
     private void HandleGameState()
