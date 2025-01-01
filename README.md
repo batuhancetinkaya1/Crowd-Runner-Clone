@@ -7,7 +7,7 @@ Welcome to the **Crowd-Runner-Clone** project! This repository contains a Unity-
 - [Installation](#installation)
 - [Gameplay](#gameplay)
 - [Tile and Chunk System](#tile-and-chunk-system)
-- [Enemy, Bonus Type, and Amount System](#enemy-bonus-type-and-amount-system)
+- [Enemy and Bonus System](#enemy-and-bonus-system)
 - [Fight Mechanics](#fight-mechanics)
 - [Project Structure](#project-structure)
 - [Future Improvements](#future-improvements)
@@ -18,7 +18,7 @@ Welcome to the **Crowd-Runner-Clone** project! This repository contains a Unity-
 ## Features
 - Dynamic level generation with a mix of normal tiles and fight tiles.
 - Advanced mechanics for doors, bonuses, and enemy spawning.
-- Fight mechanics with strategic decision-making.
+- Fight mechanics where crowds decrease one by one in visually appealing formations.
 - Modular structure to enable further enhancements.
 
 ## Installation
@@ -42,43 +42,44 @@ The game uses a dynamic tile and chunk system to generate levels:
 - **Fight Tiles**: Special tiles containing enemies.
 - **Chunks**: Combinations of tiles generated as the player progresses.
 
-## Enemy, Bonus Type, and Amount System
-The type and amount of enemies and bonuses are determined by a weighted random system. The mathematics behind the system is as follows:
+## Enemy and Bonus System
+The type and amount of enemies and bonuses are dynamically determined based on the current crowd potential. The mathematical framework is as follows:
 
 1. **Enemy Spawning**:
-   - Let `E` represent the total number of enemies to spawn on a fight tile.
-   - `E = BaseEnemies + (Level * EnemyMultiplier)`
-     - `BaseEnemies` is a fixed minimum number of enemies.
-     - `Level` represents the current level or progress.
-     - `EnemyMultiplier` adjusts difficulty scaling with player progress.
-   - Each enemy type is assigned a probability `P(Type)` such that:
-     - `Sum(P(Type)) = 1`
-     - A random value `R` between 0 and 1 determines the type of enemy spawned based on cumulative probabilities.
+   - Let `PotentialCurrent` represent the current crowd potential.
+   - Enemies are spawned to match a range calculated by:
+     - `PotentialMin` = `PotentialCurrent * 0.8`
+     - `PotentialMax` = `PotentialCurrent * 1.2`
+   - After enemies are spawned, `PotentialCurrent` is recalculated to reflect the reduced potential after engaging enemies.
 
 2. **Bonus Distribution**:
-   - Bonuses are randomly placed on normal tiles.
-   - Let `B` represent the total number of bonuses.
-   - `B = BaseBonuses + Random(0, MaxAdditionalBonuses)`
-     - `BaseBonuses` is the guaranteed number of bonuses.
-     - `MaxAdditionalBonuses` introduces variability.
-   - Each bonus type has a probability `P(BonusType)` similar to enemies.
+   - Bonuses are distributed based on `PotentialCurrent`, `MaxCrowd`, and `MinCrowd` values.
+   - Bonuses spawn with values between:
+     - `MaxCrowd` = 300
+     - `MinCrowd` = 1
+   - This ensures bonuses align with the crowd's potential needs and level difficulty.
 
 3. **Dynamic Adjustments**:
-   - Both enemy and bonus spawn counts are adjusted dynamically based on player performance (e.g., score or remaining crowd size).
+   - Both enemy and bonus counts dynamically adjust to maintain gameplay balance and ensure progression.
 
 ## Fight Mechanics
 When the player enters a fight tile:
-- **Enemy Waves**: Enemies spawn in waves, with each wave consisting of `W` enemies calculated as:
-  - `W = WaveBase + (Level * WaveMultiplier)`
-    - `WaveBase` is the minimum number of enemies per wave.
-    - `WaveMultiplier` scales the wave size with the level.
-- **Combat**:
-  - The player's crowd engages enemies using a proportional damage system:
-    - Damage dealt by the player = `PlayerCount * AttackPower`
-    - Damage taken = `EnemyCount * EnemyAttackPower`
-  - Combat continues until all enemies are defeated or the player's crowd size reaches zero.
-- **Victory Conditions**: All enemies must be defeated to proceed.
-- **Reset System**: If the player loses, the level restarts with reduced difficulty to encourage progress.
+- **Crowd Interaction**:
+  - The enemy crowd approaches the player's crowd as a group.
+  - Both crowds decrease one by one during the fight, calculated as:
+    - `RemainingCrowd = PlayerCrowd - EnemyCrowd`
+  - The crowds visually get closer during the fight for enhanced aesthetics.
+- **Camera Behavior**:
+  - During the fight, the camera switches to a fixed angle for a focused view.
+  - The crowd distribution follows a **Fermat Spiral** with a fixed angle of 137.5 degrees to create visually pleasing formations.
+- **Dynamic Run Phase**:
+  - Outside of the fight, the camera updates dynamically, making the evolving crowd distribution visually engaging over time.
+- **Victory Conditions**:
+  - The player wins if their crowd remains after the enemy crowd is depleted.
+  - If the player's crowd is eliminated, the game stops and awaits a restart.
+- **Outcome Determination**:
+  - All calculations for victory or defeat are automatic.
+  - Players have no active input during the fight sequence.
 
 ## Project Structure
 ### [Assets](https://github.com/batuhancetinkaya1/Crowd-Runner-Clone/tree/main/Assets)
@@ -114,4 +115,3 @@ This project is open source and available under the [MIT License](LICENSE). Feel
 ---
 
 This game is a work in progress and will soon be available on [itch.io](https://itch.io). Stay tuned for updates!
-
